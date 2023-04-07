@@ -1,0 +1,33 @@
+{
+  "name": "datacenter",
+  "version": "1.0.0",
+  "description": "ktt data collection",
+  "main": "index.js",
+  "bin": {
+    "cli": "./bin/cli.js"
+  },
+  "scripts": {
+    "build": "npm run lint && npm run prettier && tsc",
+    "clean": "rm -fr dist/*",
+    "cli": "ts-node src/index.ts ../test/1.xlsx",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
+    "lint": "eslint --fix src --ext .ts --max-warnings=0",
+    "prettier": "prettier --write \"src/**/*.ts\""
+  },
+  "author": "bill",
+  "license": "ISC",
+  "dependencies": {
+    "commander": "^10.0.0",
+    "exceljs": "^4.3.0",
+    "prettier": "^2.8.7",
+    "typescript": "^5.0.3"
+  },
+  "devDependencies": {
+    "@types/node": "^18.15.11",
+    "@typescript-eslint/eslint-plugin": "^5.57.1",
+    "@typescript-eslint/parser": "^5.57.1",
+    "eslint": "^8.37.0",
+    "ts-node": "^10.9.1",
+    "ts-node-dev": "^2.0.0"
+  }
+}
