@@ -18,14 +18,14 @@
  */
 import { Table, HeaderInfo, RowData } from "./table";
 
-class DbCore implements Table{
-  m_HeaderList: Array<HeaderInfo> = []
-  m_Name = ''
-  m_RowDataList: Array<RowData> = []
-  constructor(name: string) {
-    this.m_Name = name
-    this.m_HeaderList = new Array(0)
-    this.m_RowDataList = new Array(0)
+class DbCore implements Table {
+  protected m_HeaderList: Array<HeaderInfo> = [];
+  protected m_Name = "";
+  protected m_RowDataList: Array<RowData> = [];
+  protected constructor(name: string) {
+    this.m_Name = name;
+    this.m_HeaderList = new Array(0);
+    this.m_RowDataList = new Array(0);
   }
   /**
      * SetHeaderList
@@ -35,7 +35,9 @@ class DbCore implements Table{
       this.m_HeaderList.push(element);
     });
   }
-  
+  public GetHeaderSize() {
+    return this.m_HeaderList.length;
+  }
   /**
      * GetHeaderItem
      
@@ -55,50 +57,63 @@ class DbCore implements Table{
     return null;
   }
   public GetDataSize() {
-    return this.m_RowDataList.length
+    return this.m_RowDataList.length;
   }
 
-  protected CheckRowData(data: RowData) {
-    if(data.Fields.length != this.m_HeaderList.length) {
-      console.log("data type structure wrong")
-      return false
+  private CheckRowData(data: RowData) {
+    if (data.Fields.length != this.m_HeaderList.length) {
+      console.log("data structure wrong");
+      return false;
     }
-      
-    this.m_HeaderList.forEach( (header,index) => {
-      if(header.datatype != typeof data.Fields.at(index)) {
-        console.log("field["+index+"]error:"
-          + "required data type: "+  header.datatype 
-          +"--> while load data type:"+ typeof data.Fields.at(index))
-        return false
-      }
-    })
 
-    return true
+    this.m_HeaderList.forEach((header, index) => {
+      if (header.datatype != typeof data.Fields.at(index)) {
+        console.log(
+          "field[" +
+            index +
+            "]error:" +
+            "required data type: " +
+            header.datatype +
+            "--> while data type:" +
+            typeof data.Fields.at(index)
+        );
+        return false;
+      }
+    });
+
+    return true;
   }
   public InsertData(data: RowData) {
-    if(!this.CheckRowData(data))
-      return -1
-    return this.m_RowDataList.push(data)
+    if (!this.CheckRowData(data)) return -1;
+    return this.m_RowDataList.push(data);
   }
-  public DeleteData(idx: number,num: number = 1) {
-    let d = this.m_RowDataList.slice(idx,idx + num)
-    this.m_RowDataList.copyWithin(idx , idx+num)
-    for(let i =0;i<num;i++)
-      this.m_RowDataList.pop()
-    return d
+  public DeleteData(idx: number, num = 1) {
+    const d = this.m_RowDataList.slice(idx, idx + num);
+    this.m_RowDataList.copyWithin(idx, idx + num);
+    for (let i = 0; i < num; i++) this.m_RowDataList.pop();
+    return d;
   }
   public ShowHeadList() {
-    this.m_HeaderList.forEach( (h, i) => {
-      console.log("head field["+ i +"] :" + "name:" + h.name 
-      + " type:" + h.datatype 
-      + " srcname:" + h.datasrc?.name 
-      + " srcfile:" + h.datasrc?.filename)
-    })
+    this.m_HeaderList.forEach((h, i) => {
+      console.log(
+        "head field[" +
+          i +
+          "] :" +
+          "name:" +
+          h.name +
+          " type:" +
+          h.datatype +
+          " srcname:" +
+          h.datasrc?.name +
+          " srcfile:" +
+          h.datasrc?.filename
+      );
+    });
   }
   public ShowDataList() {
-    this.m_RowDataList.forEach( (d, i) => {
-      console.log("row "+ i +":" + "data:" + d.Fields.toString() )
-    })
+    this.m_RowDataList.forEach((d, i) => {
+      console.log("row " + i + ":" + "data:" + d.Fields.toString());
+    });
   }
   /**
      * SetName
@@ -112,7 +127,6 @@ class DbCore implements Table{
   public GetName() {
     return this.m_Name;
   }
-  
 }
 
 export { DbCore };

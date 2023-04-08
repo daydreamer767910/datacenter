@@ -19,10 +19,13 @@
 import { DbCore } from "./dbcore";
 import Excel from "exceljs";
 import * as path from "path";
-import fs from "fs"
+import fs from "fs";
 import { RowData } from "./table";
 
 class Bill extends DbCore {
+  constructor(name: string) {
+    super(name);
+  }
   /**
    * LoadFromFile
    */
@@ -33,22 +36,41 @@ class Bill extends DbCore {
     for (let i = 2; i < worksheet.rowCount; i++) {
       const row = worksheet.getRow(i);
       //let rowContent = "row" + i;
-      let data: RowData = {Fields : new Array(0)}
+      const data: RowData = { Fields: new Array(0) };
       row.eachCell((cell) => {
-        data.Fields.push(cell.value)
+        data.Fields.push(cell.value);
         //rowContent += ":" + cell.toString();
       });
-      this.InsertData(data)
+      this.InsertData(data);
       //console.log(rowContent);
     }
   }
+  public SortData(x: number | string) {
+    let idx = -1;
+    if (typeof x === "string") {
+      idx = this.m_HeaderList.findIndex((obj) => {
+        return obj.name === x;
+      });
+      //console.log("--------------"+ x + "idx:" + idx)
+    } else if (typeof x === "number") {
+      idx = x;
+    }
+
+    if (idx >= 0 && this.m_RowDataList.length > 1) {
+      this.m_RowDataList.sort((a, b) => {
+        //console.log("--------------field["+ idx + "] :" + a.Fields.at(idx))
+        return a.Fields.at(idx) - b.Fields.at(idx);
+      });
+    }
+  }
+
   public async InitHeaderList(filename: string) {
     const filePath = path.resolve(__dirname, filename);
-    const da = JSON.parse(fs.readFileSync(filePath,"utf-8"))
+    const da = JSON.parse(fs.readFileSync(filePath, "utf-8"));
     /*for(let i=0; i< da.headers.length; i++ ) {
       console.log("items[" + i + "]" + da.headers[i].name + da.headers[i].datatype)
     }*/
-    this.SetHeaderList(da.headers)
+    this.SetHeaderList(da.headers);
   }
 }
 export { Bill };

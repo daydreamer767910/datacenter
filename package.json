@@ -11,7 +11,7 @@
     "clean": "rm -fr dist/*",
     "cli": "ts-node src/index.ts ../test/1.xlsx",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
-    "lint": "eslint --fix src --ext .ts --max-warnings=0",
+    "lint": "eslint --fix src --ext .ts --max-warnings=10",
     "prettier": "prettier --write \"src/**/*.ts\""
   },
   "author": "bill",

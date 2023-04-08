@@ -18,31 +18,28 @@
  */
 
 type DataSource = {
-    name: string
-    filename?: string
-}
+  name: string;
+  filename?: string;
+};
 
 type HeaderInfo = {
-    name: string;
-    datatype: string;
-    datasrc?: DataSource | null;
-}
+  name: string;
+  datatype: string;
+  datasrc?: DataSource | null;
+};
 
 interface RowData {
-    Fields: Array<any>
+  Fields: Array<any>;
 }
 
 interface Table {
-    m_HeaderList: Array<HeaderInfo>
-    m_Name: string
-    m_RowDataList: Array<RowData>
-    SetName(name: string): void
-    GetName(): string
-    SetHeaderList(headers: HeaderInfo[]): void
-    GetHeader(x: string | number): HeaderInfo|null|undefined
-    InsertData(data: RowData): number
-    GetDataSize(): number
-    DeleteData(idx: number, num: number): RowData[] | null
+  SetName(name: string): void;
+  GetName(): string;
+  SetHeaderList(headers: HeaderInfo[]): void;
+  GetHeader(x: string | number): HeaderInfo | null | undefined;
+  InsertData(data: RowData): number;
+  GetDataSize(): number;
+  DeleteData(idx: number, num: number): RowData[] | null;
 }
 
-export {Table , HeaderInfo, RowData}
+export { Table, HeaderInfo, RowData };

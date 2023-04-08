@@ -43,7 +43,7 @@
         } ,
         {
             "name" : "联系电话",
-            "datatype": "string",
+            "datatype": "number",
             "datasrc":"test"
         } ,
         {
