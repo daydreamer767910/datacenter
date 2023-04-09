@@ -61,31 +61,25 @@ class DbCore implements Table {
   }
 
   private CheckRowData(data: RowData) {
+    let ret = false
     if (data.Fields.length != this.m_HeaderList.length) {
-      console.log("data structure wrong");
-      return false;
+      console.log(`data structure wrong:expected[${this.m_HeaderList.length}]while[${data.Fields.length}]`)
+      return ret
     }
-
     this.m_HeaderList.forEach((header, index) => {
-      if (header.datatype != typeof data.Fields.at(index)) {
-        console.log(
-          "field[" +
-            index +
-            "]error:" +
-            "required data type: " +
-            header.datatype +
-            "--> while data type:" +
-            typeof data.Fields.at(index)
-        );
-        return false;
+      if (header.datatype != "any" && header.datatype != typeof data.Fields.at(index)) {
+        console.log(`field[${index}]name[${header.name}]error:required data type:${header.datatype}-->while data type:${typeof data.Fields.at(index)} :data[${data.Fields.at(index)}]`)
+        ret = false;
       }
-    });
-
-    return true;
+      else{
+        ret = true
+      }
+    })
+    return ret;
   }
   public InsertData(data: RowData) {
-    if (!this.CheckRowData(data)) return -1;
-    return this.m_RowDataList.push(data);
+    if (!this.CheckRowData(data)) return 0;
+    return this.m_RowDataList.push(data)
   }
   public DeleteData(idx: number, num = 1) {
     const d = this.m_RowDataList.slice(idx, idx + num);
@@ -105,8 +99,8 @@ class DbCore implements Table {
           h.datatype +
           " srcname:" +
           h.datasrc?.name +
-          " srcfile:" +
-          h.datasrc?.filename
+          " srcreg:" +
+          h.datasrc?.regex
       );
     });
   }

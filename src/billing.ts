@@ -29,20 +29,55 @@ class Bill extends DbCore {
   /**
    * LoadFromFile
    */
-  public async LoadFromFile(filename: string) {
+  public async LoadFromFile(filename: string, sheetid: number = 0) {
     const workbook = new Excel.Workbook();
-    const content = await workbook.xlsx.readFile(filename);
-    const worksheet = content.worksheets[0];
-    for (let i = 2; i < worksheet.rowCount; i++) {
-      const row = worksheet.getRow(i);
-      //let rowContent = "row" + i;
-      const data: RowData = { Fields: new Array(0) };
-      row.eachCell((cell) => {
-        data.Fields.push(cell.value);
-        //rowContent += ":" + cell.toString();
-      });
-      this.InsertData(data);
-      //console.log(rowContent);
+    try {
+      if(filename.match(/\S*.xlsx/)) {
+        await workbook.xlsx.readFile(filename)
+      }
+      else if(filename.match(/\S*.csv/)) {
+        await workbook.csv.readFile(filename)
+      }
+      else {
+        await workbook.xlsx.readFile(filename)
+      }
+        
+      let worksheet = workbook.worksheets[sheetid]
+      let row = worksheet.getRow(1);// header
+      let collist = new Array<number>(this.m_HeaderList.length)
+      for(let j=0;j<collist.length; j++) {
+        collist[j] = 0
+      }
+      row.eachCell((cell,col) => {
+        for( let j=0;j< this.m_HeaderList.length; j++) {
+          if(this.m_HeaderList[j].datasrc?.name === cell.toString()) {
+            collist[j] = col
+            //console.log(`col[${j}] = [${col}] name:${this.m_HeaderList[j].name}`)
+          }
+        }
+      })
+      for (let i = 2; i < worksheet.rowCount; i++) {
+        row = worksheet.getRow(i);
+        let data: RowData = { Fields: new Array(0) };
+        collist.forEach( (col,j) => {
+          let value = null
+          if(col > 0){
+            let regex = this.m_HeaderList[j].datasrc?.regex
+            value = regex ? row.getCell(col).value?.toString().match(new RegExp(regex,"g")) : row.getCell(col).value
+          }
+          if(value) {
+            data.Fields.push(value)
+          } else {
+            data.Fields.push(this.m_HeaderList[j].default);
+          }
+        })
+        //console.log("datasize is:"+data.Fields.length)
+        if(this.InsertData(data) <=0){
+          console.log("insert row[" + i +"]" + data.Fields.toString()+" failed")
+        }
+      }
+    } catch(e) {
+      console.log('load data from file error:' +e)
     }
   }
   public SortData(x: number | string) {

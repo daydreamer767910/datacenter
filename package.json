@@ -9,7 +9,8 @@
   "scripts": {
     "build": "npm run lint && npm run prettier && tsc",
     "clean": "rm -fr dist/*",
-    "cli": "ts-node src/cli.ts ../test/1.xlsx",
+    "cli-paidan": "ts-node src/cli.ts paidan ../test ../test/bak",
+    "cli-huidan": "ts-node src/cli.ts paidan ../test ../test/bak",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint --fix src --ext .ts --max-warnings=10",
     "prettier": "prettier --write \"src/**/*.ts\""

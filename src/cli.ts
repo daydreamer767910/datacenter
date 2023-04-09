@@ -1,28 +1,31 @@
 import * as path from "path";
 import { Command } from "commander";
-import { Bill } from "./billing";
+import * as APP from "./app";
 
 const program = new Command();
 program
   .version("1.0.1")
   .description("An example CLI for ktt managing")
-  .option("-p, --paidan  [sourceDir,destDir]", "generate the daily bill")
-  .option("-h, --huidan [sourceDir,destDir]", "merge the courier bill")
+  .option("p, paidan  [sourceDir,destDir]", "generate the daily bill")
+  .option("h, huidan [sourceDir,destDir]", "merge the courier bill")
   .parse(process.argv);
-//console.info(process.argv.length);
+//console.info(process.argv.slice(2).length);
 if (!process.argv.slice(2).length) {
   program.outputHelp();
-} else {
-  console.log(process.argv);
-  const filePath = path.resolve(__dirname, process.argv[2]);
-  const bill = new Bill("test");
-  bill.InitHeaderList("billconfig.json");
-  bill.ShowHeadList();
-  bill.LoadFromFile(filePath).then(() => {
-    console.log("---------------------------------------------------------");
-    bill.ShowDataList();
-    bill.SortData("联系电话");
-    //bill.DeleteData(0,1)
-    bill.ShowDataList();
-  });
+} else if (process.argv.slice(2).length == 3) {
+  const sourceDir = path.resolve(__dirname, process.argv[3]);
+  const destDir = path.resolve(__dirname, process.argv[4]);
+  //console.log("srcDir:" + sourceDir);
+  //console.log("destDir:" + destDir);
+  if (
+    process.argv[2].toLowerCase() === "p" ||
+    process.argv[2].toLowerCase() === "paidan"
+  ) {
+    APP.paidan(sourceDir,destDir)
+  } else if (
+    process.argv[2].toLowerCase() === "h" ||
+    process.argv[2].toLowerCase() === "huidan"
+  ) {
+    APP.huidan(sourceDir,destDir)
+  }
 }

@@ -19,13 +19,14 @@
 
 type DataSource = {
   name: string;
-  filename?: string;
+  regex?: string;
 };
 
 type HeaderInfo = {
-  name: string;
-  datatype: string;
-  datasrc?: DataSource | null;
+  name: string
+  datatype: string
+  default?: any
+  datasrc?: DataSource | null
 };
 
 interface RowData {
