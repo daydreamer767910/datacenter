@@ -32,16 +32,7 @@ class Bill extends DbCore {
   public async LoadFromFile(filename: string, sheetid: number = 0) {
     const workbook = new Excel.Workbook();
     try {
-      if(filename.match(/\S*.xlsx/)) {
-        await workbook.xlsx.readFile(filename)
-      }
-      else if(filename.match(/\S*.csv/)) {
-        await workbook.csv.readFile(filename)
-      }
-      else {
-        await workbook.xlsx.readFile(filename)
-      }
-        
+      await workbook.xlsx.readFile(filename)
       let worksheet = workbook.worksheets[sheetid]
       let row = worksheet.getRow(1);// header
       let collist = new Array<number>(this.m_HeaderList.length)
