@@ -1,4 +1,6 @@
 {
+    "name": "bill",
+    "sheetid":"商品列表",
     "headers": [
         {
             "name" : "跟团号",
@@ -16,7 +18,8 @@
         } ,
         {
             "name" : "团购标题",
-            "datatype": "any",
+            "datatype": "string",
+            "default": "Unknown",
             "datasrc" : {
                 "name": "团购标题",
                 "regex": "【([A-Z]?\\d{3}-?\\d{0,2})】"
@@ -55,6 +58,7 @@
         {
             "name" : "规格",
             "datatype": "string",
+            "default": "",
             "datasrc" : {
                 "name": "规格"
             }
@@ -69,13 +73,15 @@
         {
             "name" : "数量",
             "datatype": "number",
+            "default": 0,
             "datasrc" : {
                 "name": "数量"
             }
         } ,
         {
             "name" : "商品成本价",
-            "datatype": "string",
+            "datatype": "number",
+            "default": 0,
             "datasrc" : {
                 "name": "商品成本价"
             }
@@ -91,6 +97,7 @@
         {
             "name" : "订单金额",
             "datatype": "number",
+            "default": 0,
             "datasrc" : {
                 "name": "订单金额"
             }
@@ -151,6 +158,16 @@
             "datasrc" : {
                 "name": "详细地址"
             }
+        } ,
+        {
+            "name" : "物流公司",
+            "datatype": "string",
+            "default": ""
+        } ,
+        {
+            "name" : "物流单号",
+            "datatype": "string",
+            "default": ""
         }
     ]
 }

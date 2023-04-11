@@ -17,23 +17,47 @@
  *
  */
 import { DbCore } from "./dbcore";
-import Excel from "exceljs";
-import * as path from "path";
-import fs from "fs";
+import Excel, { Column } from "exceljs";
 import { RowData } from "./table";
+import { HeaderInfo } from "./table";
 
 class Bill extends DbCore {
+  private static m_List: Map<string,Bill> = new Map()
+  public static GetBill(name:string) {
+    return Bill.m_List.get(name)
+  }
   constructor(name: string) {
-    super(name);
+    super(name)
+    Bill.m_List.set(name,this)
+  }
+  /**
+   * SaveToFile()
+   */
+  public async SaveToFile(filename: string, sheetid: string) {
+    const workbook = new Excel.Workbook();
+    try {
+      let worksheet = workbook.addWorksheet(sheetid)
+      for( let j=0;j< this.m_HeaderList.length; j++) {
+        worksheet.getRow(1).getCell(j+1).value = this.m_HeaderList[j].name
+      }
+      for( let i=2;i< this.m_RowDataList.length+2; i++) {
+        worksheet.getRow(i).values = this.m_RowDataList[i-2].Fields
+      }
+      workbook.xlsx.writeFile(filename)
+    } catch(e) {
+      console.error(e)
+    }
   }
   /**
    * LoadFromFile
    */
-  public async LoadFromFile(filename: string, sheetid: number = 0) {
+  public async LoadFromFile(filename: string, sheetid: number|string) {
     const workbook = new Excel.Workbook();
     try {
+      //await workbook.csv.readFile(filename)
+      let ret = this.m_RowDataList.length
       await workbook.xlsx.readFile(filename)
-      let worksheet = workbook.worksheets[sheetid]
+      let worksheet = workbook.getWorksheet(sheetid)//workbook.worksheets[sheetid]
       let row = worksheet.getRow(1);// header
       let collist = new Array<number>(this.m_HeaderList.length)
       for(let j=0;j<collist.length; j++) {
@@ -47,7 +71,7 @@ class Bill extends DbCore {
           }
         }
       })
-      for (let i = 2; i < worksheet.rowCount; i++) {
+      for (let i = 2; i < worksheet.rowCount+1; i++) {
         row = worksheet.getRow(i);
         let data: RowData = { Fields: new Array(0) };
         collist.forEach( (col,j) => {
@@ -57,7 +81,23 @@ class Bill extends DbCore {
             value = regex ? row.getCell(col).value?.toString().match(new RegExp(regex,"g")) : row.getCell(col).value
           }
           if(value) {
-            data.Fields.push(value)
+            switch(this.m_HeaderList[j].datatype.toLowerCase()) {
+              case 'string':
+                data.Fields.push(value.toString())
+                break;
+              case 'boolean':
+                data.Fields.push(Boolean(value))
+                break;
+              case 'number':
+                data.Fields.push(Number(value))
+                break;
+              case 'object':
+              case 'any':
+              default:
+                data.Fields.push(value)
+                break;
+            }
+            
           } else {
             data.Fields.push(this.m_HeaderList[j].default);
           }
@@ -67,8 +107,9 @@ class Bill extends DbCore {
           console.log("insert row[" + i +"]" + data.Fields.toString()+" failed")
         }
       }
+      return this.m_RowDataList.length - ret
     } catch(e) {
-      console.log('load data from file error:' +e)
+      console.error(e)
     }
   }
   public SortData(x: number | string) {
@@ -84,19 +125,23 @@ class Bill extends DbCore {
 
     if (idx >= 0 && this.m_RowDataList.length > 1) {
       this.m_RowDataList.sort((a, b) => {
+        let ret = 0
+        switch(this.m_HeaderList[idx].datatype.toLowerCase()) {
+          case 'string':
+            ret = a.Fields.at(idx) < b.Fields.at(idx) ? -1 : 1
+            break;
+          case 'number':
+            ret = a.Fields.at(idx) - b.Fields.at(idx)
+            break;
+          case 'object':
+          case 'any':
+          default:
+            break;
+        }
         //console.log("--------------field["+ idx + "] :" + a.Fields.at(idx))
-        return a.Fields.at(idx) - b.Fields.at(idx);
+        return ret
       });
     }
-  }
-
-  public async InitHeaderList(filename: string) {
-    const filePath = path.resolve(__dirname, filename);
-    const da = JSON.parse(fs.readFileSync(filePath, "utf-8"));
-    /*for(let i=0; i< da.headers.length; i++ ) {
-      console.log("items[" + i + "]" + da.headers[i].name + da.headers[i].datatype)
-    }*/
-    this.SetHeaderList(da.headers);
-  }
+  }  
 }
 export { Bill };

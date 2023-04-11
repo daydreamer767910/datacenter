@@ -17,6 +17,7 @@ if (!process.argv.slice(2).length) {
   const destDir = path.resolve(__dirname, process.argv[4]);
   //console.log("srcDir:" + sourceDir);
   //console.log("destDir:" + destDir);
+  //console.log("---------------------------------------------------------"+ typeof new Date())
   if (
     process.argv[2].toLowerCase() === "p" ||
     process.argv[2].toLowerCase() === "paidan"

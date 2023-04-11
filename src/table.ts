@@ -34,11 +34,11 @@ interface RowData {
 }
 
 interface Table {
-  SetName(name: string): void;
   GetName(): string;
   SetHeaderList(headers: HeaderInfo[]): void;
   GetHeader(x: string | number): HeaderInfo | null | undefined;
   InsertData(data: RowData): number;
+  GetData(idx: number) : RowData | null
   GetDataSize(): number;
   DeleteData(idx: number, num: number): RowData[] | null;
 }

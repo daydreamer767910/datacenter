@@ -59,23 +59,45 @@ class DbCore implements Table {
   public GetDataSize() {
     return this.m_RowDataList.length;
   }
-
+  public GetHeaderNames() {
+    let names = new Array<string>(this.m_HeaderList.length)
+    this.m_HeaderList.forEach((h,i) => {
+      names[i] = h.name
+    })
+    return names
+  }
+  public GetDataFieldsByNames(idx: number, FieldNames: string[]) {
+    let rowdata = this.GetData(idx)
+    let fieldids = new Array<any>(FieldNames.length)
+    
+    FieldNames.forEach((v,i) => {
+      this.m_HeaderList.forEach((h,j) => {
+        if(v === h.name) {
+          fieldids[i] = rowdata?.Fields[j]
+          return
+        }
+      })
+    })
+    return fieldids
+  }
+  public GetData(idx: number) {
+    if(idx > this.m_RowDataList.length)
+      return null
+    return this.m_RowDataList[idx]
+  }
   private CheckRowData(data: RowData) {
-    let ret = false
     if (data.Fields.length != this.m_HeaderList.length) {
       console.log(`data structure wrong:expected[${this.m_HeaderList.length}]while[${data.Fields.length}]`)
-      return ret
+      return false
     }
-    this.m_HeaderList.forEach((header, index) => {
-      if (header.datatype != "any" && header.datatype != typeof data.Fields.at(index)) {
-        console.log(`field[${index}]name[${header.name}]error:required data type:${header.datatype}-->while data type:${typeof data.Fields.at(index)} :data[${data.Fields.at(index)}]`)
-        ret = false;
+    for(let i = 0; i< this.m_HeaderList.length; i++) {
+      let datetype = this.m_HeaderList[i].datatype
+      if ( datetype != "any" && datetype != typeof data.Fields.at(i)) {
+        console.log(`field[${i}]name[${this.m_HeaderList[i].name}]error:required type:${datetype}-->while type:${typeof data.Fields.at(i)} :data[${data.Fields.at(i)}]`)
+        return false
       }
-      else{
-        ret = true
-      }
-    })
-    return ret;
+    }
+    return true;
   }
   public InsertData(data: RowData) {
     if (!this.CheckRowData(data)) return 0;
@@ -89,31 +111,13 @@ class DbCore implements Table {
   }
   public ShowHeadList() {
     this.m_HeaderList.forEach((h, i) => {
-      console.log(
-        "head field[" +
-          i +
-          "] :" +
-          "name:" +
-          h.name +
-          " type:" +
-          h.datatype +
-          " srcname:" +
-          h.datasrc?.name +
-          " srcreg:" +
-          h.datasrc?.regex
-      );
+      console.log(`head field[${i}] :name:${h.name} type:${h.datatype} srcname:${h.datasrc?.name} srcreg:${h.datasrc?.regex}`)
     });
   }
   public ShowDataList() {
     this.m_RowDataList.forEach((d, i) => {
       console.log("row " + i + ":" + "data:" + d.Fields.toString());
     });
-  }
-  /**
-     * SetName
-    name : string     */
-  public SetName(name: string) {
-    this.m_Name = name;
   }
   /**
    * GetName
