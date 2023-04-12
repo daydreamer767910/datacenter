@@ -16,63 +16,43 @@
  *   limitations under the License.
  *
  */
-import { Table, HeaderInfo, RowData } from "./table";
+import { Table, RowData } from "./table";
 
 class DbCore implements Table {
-  protected m_HeaderList: Array<HeaderInfo> = [];
   protected m_Name = "";
   protected m_RowDataList: Array<RowData> = [];
+  protected m_Config :any
   protected constructor(name: string) {
     this.m_Name = name;
-    this.m_HeaderList = new Array(0);
     this.m_RowDataList = new Array(0);
   }
-  /**
-     * SetHeaderList
-    headers : HeaderInfo[]     */
-  public SetHeaderList(headers: HeaderInfo[]) {
-    headers.forEach((element) => {
-      this.m_HeaderList.push(element);
-    });
+  public SetConfig(config: any) {
+    this.m_Config = config
   }
+  
   public GetHeaderSize() {
-    return this.m_HeaderList.length;
+    return this.m_Config.headers.length;
   }
-  /**
-     * GetHeaderItem
-     
-     */
-  public GetHeader(x: string | number) {
-    if (typeof x === "number") {
-      if (x < this.m_HeaderList.length) {
-        return this.m_HeaderList.at(x);
-      }
-      return null;
-    } else if (typeof x === "string") {
-      this.m_HeaderList.forEach((value) => {
-        if (value.name === x) return value;
-      });
-      return null;
-    }
-    return null;
-  }
+  
   public GetDataSize() {
     return this.m_RowDataList.length;
   }
+
   public GetHeaderNames() {
-    let names = new Array<string>(this.m_HeaderList.length)
-    this.m_HeaderList.forEach((h,i) => {
-      names[i] = h.name
-    })
-    return names
+    return this.m_Config.headers.map((h: { header: string }) => h.header)
   }
-  public GetDataFieldsByNames(idx: number, FieldNames: string[]) {
-    let rowdata = this.GetData(idx)
+
+  public GetHeaderKeys() {
+    return this.m_Config.headers.map((k: { key: string }) => k.key)
+  }
+
+  public GetDataFieldsByNames(RowId: number, FieldNames: string[]) {
+    let rowdata = this.GetData(RowId)
     let fieldids = new Array<any>(FieldNames.length)
     
     FieldNames.forEach((v,i) => {
-      this.m_HeaderList.forEach((h,j) => {
-        if(v === h.name) {
+      this.m_Config.headers.forEach((h: { header: string; },j: number) => {
+        if(v === h.header) {
           fieldids[i] = rowdata?.Fields[j]
           return
         }
@@ -86,14 +66,14 @@ class DbCore implements Table {
     return this.m_RowDataList[idx]
   }
   private CheckRowData(data: RowData) {
-    if (data.Fields.length != this.m_HeaderList.length) {
-      console.log(`data structure wrong:expected[${this.m_HeaderList.length}]while[${data.Fields.length}]`)
+    if (data.Fields.length != this.m_Config.headers.length) {
+      console.log(`data structure wrong:expected[${this.m_Config.headers.length}]while[${data.Fields.length}]`)
       return false
     }
-    for(let i = 0; i< this.m_HeaderList.length; i++) {
-      let datetype = this.m_HeaderList[i].datatype
+    for(let i = 0; i< this.m_Config.headers.length; i++) {
+      let datetype = this.m_Config.headers[i].datatype
       if ( datetype != "any" && datetype != typeof data.Fields.at(i)) {
-        console.log(`field[${i}]name[${this.m_HeaderList[i].name}]error:required type:${datetype}-->while type:${typeof data.Fields.at(i)} :data[${data.Fields.at(i)}]`)
+        console.log(`field[${i}]name[${this.m_Config.headers[i].header}]error:required type:${datetype}-->while type:${typeof data.Fields.at(i)} :data[${data.Fields.at(i)}]`)
         return false
       }
     }
@@ -110,13 +90,11 @@ class DbCore implements Table {
     return d;
   }
   public ShowHeadList() {
-    this.m_HeaderList.forEach((h, i) => {
-      console.log(`head field[${i}] :name:${h.name} type:${h.datatype} srcname:${h.datasrc?.name} srcreg:${h.datasrc?.regex}`)
-    });
+    console.log(this.m_Config.headers)
   }
   public ShowDataList() {
     this.m_RowDataList.forEach((d, i) => {
-      console.log("row " + i + ":" + "data:" + d.Fields.toString());
+      console.log(`row[${i}]:data:${d.Fields.toString()}`);
     });
   }
   /**

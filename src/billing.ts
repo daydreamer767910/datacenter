@@ -17,9 +17,9 @@
  *
  */
 import { DbCore } from "./dbcore";
-import Excel, { Column } from "exceljs";
+import Excel from "exceljs";
 import { RowData } from "./table";
-import { HeaderInfo } from "./table";
+
 
 class Bill extends DbCore {
   private static m_List: Map<string,Bill> = new Map()
@@ -33,13 +33,15 @@ class Bill extends DbCore {
   /**
    * SaveToFile()
    */
-  public async SaveToFile(filename: string, sheetid: string) {
+  public async SaveToFile(filename: string) {
     const workbook = new Excel.Workbook();
+    workbook.creator = this.m_Config.author
     try {
-      let worksheet = workbook.addWorksheet(sheetid)
-      for( let j=0;j< this.m_HeaderList.length; j++) {
-        worksheet.getRow(1).getCell(j+1).value = this.m_HeaderList[j].name
-      }
+      let worksheet = workbook.addWorksheet(this.m_Config.sheetid)
+      
+      worksheet.columns = this.m_Config.headers
+      //console.log(worksheet.columns)
+  
       for( let i=2;i< this.m_RowDataList.length+2; i++) {
         worksheet.getRow(i).values = this.m_RowDataList[i-2].Fields
       }
@@ -58,15 +60,14 @@ class Bill extends DbCore {
       let ret = this.m_RowDataList.length
       await workbook.xlsx.readFile(filename)
       let worksheet = workbook.getWorksheet(sheetid)//workbook.worksheets[sheetid]
+      
       let row = worksheet.getRow(1);// header
-      let collist = new Array<number>(this.m_HeaderList.length)
-      for(let j=0;j<collist.length; j++) {
-        collist[j] = 0
-      }
-      row.eachCell((cell,col) => {
-        for( let j=0;j< this.m_HeaderList.length; j++) {
-          if(this.m_HeaderList[j].datasrc?.name === cell.toString()) {
-            collist[j] = col
+      let cols = this.m_Config.headers.map(() => 0)
+      //match the bill headers with the file headers
+      row.eachCell((cell,i) => {
+        for( let j=0;j< this.m_Config.headers.length; j++) {
+          if(this.m_Config.headers[j].datasrc?.name === cell.toString()) {
+            cols[j] = i
             //console.log(`col[${j}] = [${col}] name:${this.m_HeaderList[j].name}`)
           }
         }
@@ -74,16 +75,17 @@ class Bill extends DbCore {
       for (let i = 2; i < worksheet.rowCount+1; i++) {
         row = worksheet.getRow(i);
         let data: RowData = { Fields: new Array(0) };
-        collist.forEach( (col,j) => {
+        cols.forEach( (col: number,j: number) => {
           let value = null
           if(col > 0){
-            let regex = this.m_HeaderList[j].datasrc?.regex
-            value = regex ? row.getCell(col).value?.toString().match(new RegExp(regex,"g")) : row.getCell(col).value
+            value = row.getCell(col).value
           }
           if(value) {
-            switch(this.m_HeaderList[j].datatype.toLowerCase()) {
+            switch(this.m_Config.headers[j].datatype.toLowerCase()) {
               case 'string':
-                data.Fields.push(value.toString())
+                let regex = this.m_Config.headers[j].datasrc?.regex
+                value = regex ? value.toString().match(new RegExp(regex,"g")) : value
+                data.Fields.push(value?.toString())
                 break;
               case 'boolean':
                 data.Fields.push(Boolean(value))
@@ -99,7 +101,7 @@ class Bill extends DbCore {
             }
             
           } else {
-            data.Fields.push(this.m_HeaderList[j].default);
+            data.Fields.push(this.m_Config.headers[j].default);
           }
         })
         //console.log("datasize is:"+data.Fields.length)
@@ -115,8 +117,8 @@ class Bill extends DbCore {
   public SortData(x: number | string) {
     let idx = -1;
     if (typeof x === "string") {
-      idx = this.m_HeaderList.findIndex((obj) => {
-        return obj.name === x;
+      idx = this.m_Config.headers.findIndex((h: { header: string }) => {
+        return h.header === x;
       });
       //console.log("--------------"+ x + "idx:" + idx)
     } else if (typeof x === "number") {
@@ -126,7 +128,7 @@ class Bill extends DbCore {
     if (idx >= 0 && this.m_RowDataList.length > 1) {
       this.m_RowDataList.sort((a, b) => {
         let ret = 0
-        switch(this.m_HeaderList[idx].datatype.toLowerCase()) {
+        switch(this.m_Config.headers[idx].datatype.toLowerCase()) {
           case 'string':
             ret = a.Fields.at(idx) < b.Fields.at(idx) ? -1 : 1
             break;

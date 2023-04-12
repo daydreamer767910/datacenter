@@ -1,173 +1,31 @@
 {
+    "input":{"sheetid":"商品列表"},
     "name": "bill",
-    "sheetid":"商品列表",
+    "author": "露露",
+    "sheetid":"订单列表",
     "headers": [
-        {
-            "name" : "跟团号",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "跟团号"
-            }
-        } ,
-        {
-            "name" : "订单号",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "订单号"
-            }
-        } ,
-        {
-            "name" : "团购标题",
-            "datatype": "string",
-            "default": "Unknown",
-            "datasrc" : {
-                "name": "团购标题",
-                "regex": "【([A-Z]?\\d{3}-?\\d{0,2})】"
-            }
-        } ,
-        {
-            "name" : "团长备注",
-            "datatype": "string",
-            "default": "",
-            "datasrc" : {
-                "name": "团长备注"
-            }
-        } ,
-        {
-            "name" : "支付时间",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "支付时间"
-            }
-        } ,
-        {
-            "name" : "商品",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "商品"
-            }
-        } ,
-        {
-            "name" : "商品编码",
-            "datatype": "string",
-            "default": "",
-            "datasrc" : {
-                "name": "商品编码"
-            }
-        } ,
-        {
-            "name" : "规格",
-            "datatype": "string",
-            "default": "",
-            "datasrc" : {
-                "name": "规格"
-            }
-        } ,
-        {
-            "name" : "分类",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "分类"
-            }
-        } ,
-        {
-            "name" : "数量",
-            "datatype": "number",
-            "default": 0,
-            "datasrc" : {
-                "name": "数量"
-            }
-        } ,
-        {
-            "name" : "商品成本价",
-            "datatype": "number",
-            "default": 0,
-            "datasrc" : {
-                "name": "商品成本价"
-            }
-        } ,
-        {
-            "name" : "运费",
-            "datatype": "number",
-            "default": 0,
-            "datasrc" : {
-                "name": "运费"
-            }
-        } ,
-        {
-            "name" : "订单金额",
-            "datatype": "number",
-            "default": 0,
-            "datasrc" : {
-                "name": "订单金额"
-            }
-        } ,
-        {
-            "name" : "退款金额",
-            "datatype": "number",
-            "default": 0,
-            "datasrc" : {
-                "name": "退款金额"
-            }
-        } ,
-        {
-            "name" : "团长",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "团长"
-            }
-        } ,
-        {
-            "name" : "收货人",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "收货人"
-            }
-        } ,
-        {
-            "name" : "联系电话",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "联系电话"
-            }
-        } ,
-        {
-            "name" : "省",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "省"
-            }
-        } ,
-        {
-            "name" : "市",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "市"
-            }
-        } ,
-        {
-            "name" : "区",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "区"
-            }
-        } ,
-        {
-            "name" : "详细地址",
-            "datatype": "string",
-            "datasrc" : {
-                "name": "详细地址"
-            }
-        } ,
-        {
-            "name" : "物流公司",
-            "datatype": "string",
-            "default": ""
-        } ,
-        {
-            "name" : "物流单号",
-            "datatype": "string",
-            "default": ""
-        }
+        {"header": "跟团号",   "key": "sn",    "width": 15 , "datatype": "string","datasrc":{"name": "跟团号"}},
+        {"header": "订单号",   "key": "id",    "width": 15 , "datatype": "string","datasrc":{"name": "订单号"}},
+        {"header": "团购标题", "key": "title", "width": 15 , "datatype": "string","default": "NA","datasrc":{"name": "团购标题","regex": "【([A-Z]?\\d{3}-?\\d{0,2})】"}},
+        {"header": "团长备注", "key": "comment",    "width": 15 , "datatype": "string","default": "",  "datasrc":{"name": "团长备注"}},
+        {"header": "支付时间", "key": "date",  "width": 15 , "datatype": "string","datasrc":{"name": "支付时间"}},
+        {"header": "商品",  "key": "product", "width": 15 , "datatype": "string","datasrc":{"name": "商品"}},
+        {"header": "商品编码", "key": "productid", "width": 15 , "datatype": "string","default": "","datasrc":{"name": "商品编码"}},
+        {"header": "规格", "key": "specs", "width": 15 , "datatype": "string","default": "","datasrc":{"name": "规格"}},
+        {"header": "分类", "key": "category", "width": 15 , "datatype": "string","datasrc":{"name": "分类"}},
+        {"header": "数量", "key": "num", "width": 15 , "datatype": "number","default": 0,"datasrc":{"name": "数量"}},
+        {"header": "商品成本价", "key": "cost", "width": 15 , "datatype": "number","default": 0,"datasrc":{"name": "商品成本价"}},
+        {"header": "运费", "key": "freight", "width": 15 , "datatype": "number","default": 0,"datasrc":{"name": "运费"}},
+        {"header": "订单金额", "key": "deposit", "width": 15 , "datatype": "number","default": 0,"datasrc":{"name": "订单金额"}},
+        {"header": "退款金额", "key": "refund", "width": 15 , "datatype": "number","default": 0,"datasrc":{"name": "退款金额"}},
+        {"header": "团长", "key": "leader", "width": 15 , "datatype": "string","datasrc":{"name": "团长"}},
+        {"header": "收货人", "key": "client", "width": 15 , "datatype": "string","datasrc":{"name": "收货人"}},
+        {"header": "联系电话", "key": "phone", "width": 15 , "datatype": "string","datasrc":{"name": "联系电话"}},
+        {"header": "省", "key": "province", "width": 15 , "datatype": "string","datasrc":{"name": "省"}},
+        {"header": "市", "key": "city", "width": 15 , "datatype": "string","datasrc":{"name": "市"}},
+        {"header": "区", "key": "district", "width": 15 , "datatype": "string","datasrc":{"name": "区"}},
+        {"header": "详细地址", "key": "addr", "width": 50 , "datatype": "string","datasrc":{"name": "详细地址"}},
+        {"header": "物流公司", "key": "couriercom", "width": 15 , "datatype": "string","default":"","datasrc":{"name": "物流公司"}},
+        {"header": "物流单号", "key": "couriersn", "width": 15 , "datatype": "string","default":"","datasrc":{"name": "物流单号"}}
     ]
 }

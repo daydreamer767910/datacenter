@@ -17,17 +17,17 @@
  *
  */
 
-type DataSource = {
+/*type DataSource = {
   name: string;
   regex?: string;
-};
+};*/
 
-type HeaderInfo = {
-  name: string
+/*type HeaderInfo = {
+  header: string
   datatype: string
   default?: any
   datasrc?: DataSource | null
-};
+};*/
 
 interface RowData {
   Fields: Array<any>;
@@ -35,12 +35,12 @@ interface RowData {
 
 interface Table {
   GetName(): string;
-  SetHeaderList(headers: HeaderInfo[]): void;
-  GetHeader(x: string | number): HeaderInfo | null | undefined;
+  //SetHeaderList(headers: HeaderInfo[]): void;
+  //GetHeader(x: string | number): HeaderInfo | null | undefined;
   InsertData(data: RowData): number;
   GetData(idx: number) : RowData | null
   GetDataSize(): number;
   DeleteData(idx: number, num: number): RowData[] | null;
 }
 
-export { Table, HeaderInfo, RowData };
+export { Table, /*HeaderInfo,*/ RowData };
