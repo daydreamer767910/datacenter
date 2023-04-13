@@ -62,48 +62,56 @@ class Bill extends DbCore {
       let worksheet = workbook.getWorksheet(sheetid)//workbook.worksheets[sheetid]
       
       let row = worksheet.getRow(1);// header
-      let cols = this.m_Config.headers.map(() => 0)
+      let datas = this.m_Config.content.map((item:{datasrc:string[],todo:string}) => {
+        let datasrc: string[] = [...item.datasrc]
+        let dataidx = datasrc.map(()=>0)
+        let todo = item.todo
+        return {datasrc, dataidx,todo}
+      })
       //match the bill headers with the file headers
       row.eachCell((cell,i) => {
-        for( let j=0;j< this.m_Config.headers.length; j++) {
-          if(this.m_Config.headers[j].datasrc?.name === cell.toString()) {
-            cols[j] = i
-            //console.log(`col[${j}] = [${col}] name:${this.m_HeaderList[j].name}`)
-          }
+        for( let j=0;j< datas.length; j++) {
+          datas[j].datasrc.forEach((item: string,k:number)=>{
+            if(item === cell.toString()) {
+              datas[j].dataidx[k] = i
+            }
+          })
         }
       })
       for (let i = 2; i < worksheet.rowCount+1; i++) {
         row = worksheet.getRow(i);
-        let data: RowData = { Fields: new Array(0) };
-        cols.forEach( (col: number,j: number) => {
-          let value = null
-          if(col > 0){
-            value = row.getCell(col).value
+        let data: RowData = { Fields: new Array(0) }
+        for( let j=0;j< datas.length; j++) {
+          let values = datas[j].dataidx.map((v:number)=>{
+            //just in case the header defined int the JSON config is missed in the original excel file
+            return v>0?row.getCell(v):this.m_Config.content[j].default
+          })
+          let todo = eval(datas[j].todo)    
+          let value = todo(values)
+          if(!value) {
+            //just in case the content in the accordingly cell is wrong
+            value = this.m_Config.content[j].default
           }
-          if(value) {
-            switch(this.m_Config.headers[j].datatype.toLowerCase()) {
-              case 'string':
-                let regex = this.m_Config.headers[j].datasrc?.regex
-                value = regex ? value.toString().match(new RegExp(regex,"g")) : value
-                data.Fields.push(value?.toString())
-                break;
-              case 'boolean':
-                data.Fields.push(Boolean(value))
-                break;
-              case 'number':
-                data.Fields.push(Number(value))
-                break;
-              case 'object':
-              case 'any':
-              default:
-                data.Fields.push(value)
-                break;
-            }
-            
-          } else {
-            data.Fields.push(this.m_Config.headers[j].default);
+          //console.log(`header[${this.m_Config.headers[j].header}] type of value: ${typeof value}`)
+          switch(this.m_Config.headers[j].datatype.toLowerCase()) {
+            case 'string':
+              data.Fields.push(value.toString())
+              break;
+            case 'boolean':
+              data.Fields.push(Boolean(value))
+              break;
+            case 'number':
+              data.Fields.push(Number(value))
+              break;
+            case 'object':
+            case 'any':
+            default:
+              data.Fields.push(value)
+              break;
           }
-        })
+          //data.Fields.push(value)
+        }
+
         //console.log("datasize is:"+data.Fields.length)
         if(this.InsertData(data) <=0){
           console.log("insert row[" + i +"]" + data.Fields.toString()+" failed")
@@ -114,6 +122,7 @@ class Bill extends DbCore {
       console.error(e)
     }
   }
+
   public SortData(x: number | string) {
     let idx = -1;
     if (typeof x === "string") {
