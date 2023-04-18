@@ -27,8 +27,7 @@ const format_date = () => {
 };
 async function load_allbills(srcDir: string, dstDir: string) {
   try {
-    const bill = new Bill(billconfig.name);
-    bill.SetConfig(billconfig);
+    const bill = new Bill(billconfig);
     //bill.SetHeaderList(billconfig.headers)
     const files = fs.readdirSync(srcDir);
     for (const file of files) {
@@ -58,20 +57,20 @@ async function dispatch_bills(
   dataidx: number[]
 ) {
   //console.log(`start to generate bill[${billname}].....`)
-  const bill = new Bill(billname);
+  let bill: Bill;
   switch (billname.at(0)) {
     case "A": //for 1688
-      bill.SetConfig(dailybill_A);
+      bill = new Bill(dailybill_A);
       break;
     case "F": //for flower city
-      bill.SetConfig(dailybill_F);
+      bill = new Bill(dailybill_F);
       break;
     case "H": //for huinong
-      bill.SetConfig(dailybill_H);
+      bill = new Bill(dailybill_H);
       break;
     case "C": //for caigou
     default: //all the wechat providers
-      bill.SetConfig(dailybill);
+      bill = new Bill(dailybill);
       break;
   }
 

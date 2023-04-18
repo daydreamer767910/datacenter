@@ -22,12 +22,10 @@ class DbCore implements Table {
   protected m_Name = "";
   protected m_RowDataList: Array<RowData> = [];
   protected m_Config: any;
-  protected constructor(name: string) {
-    this.m_Name = name;
-    this.m_RowDataList = new Array(0);
-  }
-  public SetConfig(config: any) {
+  protected constructor(config: any) {
     this.m_Config = config;
+    this.m_Name = config.name;
+    this.m_RowDataList = new Array(0);
   }
 
   public GetHeaderSize() {

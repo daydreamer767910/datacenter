@@ -24,9 +24,9 @@ class Bill extends DbCore {
   public static GetBill(name: string) {
     return Bill.m_List.get(name);
   }
-  constructor(name: string) {
-    super(name);
-    Bill.m_List.set(name, this);
+  constructor(config: any) {
+    super(config);
+    Bill.m_List.set(config.name, this);
   }
   /**
    * SaveToFile()
@@ -73,7 +73,7 @@ class Bill extends DbCore {
         });
       });
       const todo = eval(item.todo);
-
+      //console.log(todo)
       return { dataidx, todo };
     });
     return datas;
