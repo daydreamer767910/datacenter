@@ -1,0 +1,40 @@
+{
+    "input":{"sheetid":"商品列表"},
+    "name": "1688",
+    "author": "露露",
+    "sheetid":"订单列表",
+    "headers": [
+        {"header": "订单号",   "key": "id",    "width": 15 , "datatype": "string"},
+        {"header": "商品名称",  "key": "product", "width": 15 , "datatype": "string"},
+        {"header": "商品数量(件)", "key": "num", "width": 6 , "datatype": "number"},
+        {"header": "商品规格1", "key": "specs", "width": 15 , "datatype": "string"},
+        {"header": "商品规格2", "key": "specs", "width": 15 , "datatype": "string"},
+        {"header": "收件人-姓名", "key": "client", "width": 15 , "datatype": "string"},
+        {"header": "收件人-手机", "key": "phone", "width": 15 , "datatype": "string"},
+        {"header": "收件人-省", "key": "province", "width": 15 , "datatype": "string"},
+        {"header": "收件人-市", "key": "city", "width": 15 , "datatype": "string"},
+        {"header": "收件人-区", "key": "district", "width": 15 , "datatype": "string"},
+        {"header": "收件人-详细地址", "key": "addr", "width": 30 , "datatype": "string"},
+        {"header": "收货地址", "key": "addrall", "width": 30 , "datatype": "string"},
+        {"header": "买家留言", "key": "comment", "width": 15 , "datatype": "string"},
+        {"header": "1688商品链接/1688商品id", "key": "productid", "width": 15 , "datatype": "string"},
+        {"header": "分销or现货(默认或者填1走分销,0走现货)", "key": "producttype", "width": 15 , "datatype": "string"}
+    ],
+    "content":[
+        {"datasrc":["订单号"]},
+        {"datasrc":["商品"]},
+        {"datasrc":["数量"]},
+        {"datasrc":["规格"]},
+        {"datasrc":["其他规格"]},
+        {"datasrc":["收货人"]},
+        {"datasrc":["联系电话"]},
+        {"datasrc":["省"]},
+        {"datasrc":["市"]},
+        {"datasrc":["区"]},
+        {"datasrc":["详细地址"]},
+        {"datasrc":["收货地址"],"default":""},
+        {"datasrc":["买家留言"],"todo":"(a)=>'发货电话:18665316526,发货人:刘露'"},
+        {"datasrc":["商品编码"],"default":"607462150373","todo":"(a)=>a.toString().replace(/-(\\S*)/g,'')"},
+        {"datasrc":["商品编码"],"default":"1","todo":"(a)=>a.toString().substring(a.toString().length-1)"}
+    ]
+}

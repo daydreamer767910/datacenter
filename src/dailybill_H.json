@@ -1,0 +1,30 @@
+{
+    "input":{"sheetid":"商品列表"},
+    "name": "dailybill",
+    "author": "露露",
+    "sheetid":"订单列表",
+    "headers": [
+        {"header": "*商品名称及规格",  "key": "product", "width": 15 , "datatype": "string"},
+        {"header": "*供应编号", "key": "specs", "width": 15 , "datatype": "string"},
+        {"header": "*数量", "key": "num", "width": 6 , "datatype": "number"},
+        {"header": "*收件人姓名", "key": "client", "width": 15 , "datatype": "string"},
+        {"header": "*收件人手机号码", "key": "phone", "width": 15 , "datatype": "string"},
+        {"header": "*收件人地址", "key": "addr", "width": 30 , "datatype": "string"},
+        {"header": "备注", "key": "comment", "width": 15 , "datatype": "string"},
+        {"header": "发货人姓名", "key": "sender", "width": 15 , "datatype": "string"},
+        {"header": "发货人手机", "key": "sender", "width": 15 , "datatype": "string"},
+        {"header": "第三方订单号", "key": "sender", "width": 15 , "datatype": "string"}
+    ],
+    "content":[
+        {"datasrc":["商品"]},
+        {"datasrc":["商品编码"]},
+        {"datasrc":["数量"],"default":0,"todo":"(a)=>Number(a)"},
+        {"datasrc":["收货人"]},
+        {"datasrc":["联系电话"]},
+        {"datasrc":["详细地址"]},
+        {"datasrc":["团长备注"]},
+        {"datasrc":["发货人姓名"],"todo":"(a)=>'露露'"},
+        {"datasrc":["发货人手机"],"todo":"(a)=>'18665316526'"},
+        {"datasrc":["订单号"]}
+    ]
+}
