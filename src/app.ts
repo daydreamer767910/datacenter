@@ -1,63 +1,99 @@
 import { Bill } from "./billing";
 import * as path from "path";
-import * as fs from "fs"
-import { RowData } from "./table";
+import * as fs from "fs";
 
-const billconfig = JSON.parse(fs.readFileSync(path.resolve(__dirname, "billconfig.json"), "utf-8"))
-const dailybill = JSON.parse(fs.readFileSync(path.resolve(__dirname, "dailybill.json"), "utf-8"))
-
-async function load_allbills(srcDir: string) {
-    try {
-        const bill = new Bill(billconfig.name)
-        bill.SetConfig(billconfig)
-        //bill.SetHeaderList(billconfig.headers)
-        let files = fs.readdirSync(srcDir)
-        for(let file of files) {
-            if(file.match(/\S*.xlsx|\S*.csv|\S*.xls\b/)) {
-                console.log(`start to load ${file}`)
-                await bill.LoadFromFile(path.resolve(srcDir,file),billconfig.input.sheetid)
-                .then((num)=>console.log(`${num?num:0} rows are loaded`))
-            }
-        }
-        bill.SortData('团购标题')
-        
-    } catch (error) {
-        console.error("Error occurred while reading the directory!", error);
+const billconfig = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "billconfig.json"), "utf-8")
+);
+const dailybill = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "dailybill.json"), "utf-8")
+);
+const dailybill_A = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "dailybill_A.json"), "utf-8")
+);
+const dailybill_F = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "dailybill_F.json"), "utf-8")
+);
+const dailybill_H = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "dailybill_H.json"), "utf-8")
+);
+const format_date = () => {
+  const date = new Date();
+  const m = date.getMonth() + 1;
+  const d = date.getDate();
+  let fm: string = m < 10 ? "0" + m.toString() : m.toString();
+  fm += d < 10 ? "0" + d : d;
+  return fm;
+};
+async function load_allbills(srcDir: string, dstDir: string) {
+  try {
+    const bill = new Bill(billconfig.name);
+    bill.SetConfig(billconfig);
+    //bill.SetHeaderList(billconfig.headers)
+    const files = fs.readdirSync(srcDir);
+    for (const file of files) {
+      if (file.match(/\S*.xlsx|\S*.csv\b/)) {
+        console.log(`start to load ${file}`);
+        await bill
+          .LoadFromFile(path.resolve(srcDir, file), billconfig.input.sheetid)
+          .then((num) => console.log(`${num ? num : 0} rows are loaded`));
+      }
     }
+    bill.SortData(billconfig.primarykey);
+    //bill.ShowDataList()
+    //const date = new Date();
+    const filename = `${billconfig.name}-${format_date()}-(${bill.Sum(
+      "num"
+    )}).xlsx`;
+    bill.SaveToFile(path.resolve(dstDir, filename));
+    return bill.BuildPrimaryKV(billconfig.primarykey);
+  } catch (error) {
+    console.error("Error occurred while reading the directory!", error);
+    return Promise.reject(error);
+  }
 }
-async function dispatch_bills(dstDir: string) {
-    
-    const srcbill = Bill.GetBill(billconfig.name)
-    if(!srcbill)
-        return -1
-    //await srcbill.SaveToFile(path.resolve(dstDir,billconfig.name+'.xlsx'))
-    //srcbill.ShowDataList()
-    try {
-        const bill = new Bill(dailybill.name)
-        bill.SetConfig(dailybill)
-        //bill.SetHeaderList(dailybill.headers)
-        for(let i=0;i<srcbill.GetDataSize();i++) {
-            let rowdata : RowData = {Fields : srcbill.GetDataFieldsByNames(i,bill.GetHeaderNames()) }
-            bill.InsertData(rowdata)
-        }
-        await bill.SaveToFile(path.resolve(dstDir,dailybill.name+'.xlsx'))
-    } catch (error) {
-        console.error("Error occurred while reading the directory!", error);
-    }
+async function dispatch_bills(
+  dstDir: string,
+  billname: string,
+  dataidx: number[]
+) {
+  //console.log(`start to generate bill[${billname}].....`)
+  const bill = new Bill(billname);
+  switch (billname.at(0)) {
+    case "A": //for 1688
+      bill.SetConfig(dailybill_A);
+      break;
+    case "F": //for flower city
+      bill.SetConfig(dailybill_F);
+      break;
+    case "H": //for huinong
+      bill.SetConfig(dailybill_H);
+      break;
+    case "C": //for caigou
+    default: //all the wechat providers
+      bill.SetConfig(dailybill);
+      break;
+  }
+
+  bill.LoadFromBill(billconfig.name, dataidx).then((n) => {
+    console.log(`[${billname}] ${n} rows dispatched`);
+    //const date = new Date();
+    const filename = `${billname}-${format_date()}-(${bill.Sum(
+      "num"
+    )})露露甄选(18665316526).xlsx`;
+    bill.SaveToFile(path.resolve(dstDir, filename));
+  });
 }
 function paidan(srcDir: string, dstDir: string) {
-    load_allbills(srcDir)
-    .then(()=>{
-        console.log("---------------------------------------------------------")
-        dispatch_bills(dstDir)
-        .then(()=>{
-
-        })
-    })
+  load_allbills(srcDir, dstDir).then((billlist) => {
+    billlist.forEach((v: number[], k) => {
+      dispatch_bills(dstDir, k.toString(), v);
+    });
+  });
 }
 
 function huidan(srcDir: string, dstDir: string) {
-
+  console.log(`to be done for huidan ${srcDir}...${dstDir}`);
 }
 
-export {paidan, huidan}
+export { paidan, huidan };

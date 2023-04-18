@@ -21,67 +21,147 @@ import { Table, RowData } from "./table";
 class DbCore implements Table {
   protected m_Name = "";
   protected m_RowDataList: Array<RowData> = [];
-  protected m_Config :any
+  protected m_Config: any;
   protected constructor(name: string) {
     this.m_Name = name;
     this.m_RowDataList = new Array(0);
   }
   public SetConfig(config: any) {
-    this.m_Config = config
+    this.m_Config = config;
   }
-  
+
   public GetHeaderSize() {
     return this.m_Config.headers.length;
   }
-  
+
   public GetDataSize() {
     return this.m_RowDataList.length;
   }
 
-  public GetHeaderNames() {
-    return this.m_Config.headers.map((h: { header: string }) => h.header)
+  public GetHeaderNames(): string[] {
+    return this.m_Config.headers.map((h: { header: string }) => h.header);
   }
 
-  public GetHeaderKeys() {
-    return this.m_Config.headers.map((k: { key: string }) => k.key)
+  public GetHeaderKeys(): string[] {
+    return this.m_Config.headers.map((k: { key: string }) => k.key);
   }
 
-  public GetDataFieldsByNames(RowId: number, FieldNames: string[]) {
-    let rowdata = this.GetData(RowId)
-    let fieldids = new Array<any>(FieldNames.length)
-    
-    FieldNames.forEach((v,i) => {
-      this.m_Config.headers.forEach((h: { header: string; },j: number) => {
-        if(v === h.header) {
-          fieldids[i] = rowdata?.Fields[j]
-          return
+  protected GetHeaderIndex(x: string) {
+    return this.m_Config.headers.findIndex(
+      (h: { header: string; key: string }) => {
+        return h.header === x || h.key === x;
+      }
+    );
+  }
+
+  public Sum(x: string) {
+    let data = 0;
+    const idx = this.GetHeaderIndex(x);
+    if (idx >= 0) {
+      this.m_RowDataList.forEach((value) => {
+        data += value.Fields.at(idx);
+      });
+    }
+    return data;
+  }
+
+  public BuildPrimaryKV(x: number | string) {
+    let idx = -1;
+    if (typeof x === "string") {
+      idx = this.GetHeaderIndex(x);
+      //console.log("--------------"+ x + "idx:" + idx)
+    } else if (typeof x === "number") {
+      idx = x;
+    }
+    const ret = new Map<any, number[]>();
+    if (idx >= 0) {
+      this.m_RowDataList.map((value, index) => {
+        const k = value.Fields.at(idx);
+        if (ret.has(k)) {
+          const idxs = ret.get(k);
+          idxs?.push(index);
+          //ret.set(k,idxs)
+        } else {
+          const idxs: number[] = [index];
+          ret.set(k, idxs);
         }
-      })
-    })
-    return fieldids
+      });
+    }
+    return ret;
+  }
+
+  public GetDataFieldsByIndexs(RowId: number, fieldidxs: number[]) {
+    const rowdata = this.GetData(RowId);
+    const fieldids = Array.from({ length: fieldidxs.length });
+    fieldids.fill(undefined);
+    fieldidxs.forEach((v, i) => {
+      if (rowdata && v >= 0 && v < rowdata.Fields.length)
+        fieldids[i] = rowdata.Fields[v];
+    });
+    return fieldids;
+  }
+  public GetDataFieldsByNames(RowId: number, FieldNames: string[]) {
+    const rowdata = this.GetData(RowId);
+    const fieldids = Array.from({ length: FieldNames.length });
+
+    FieldNames.forEach((v, i) => {
+      this.m_Config.headers.forEach((h: { header: string }, j: number) => {
+        if (v === h.header) {
+          fieldids[i] = rowdata?.Fields[j];
+          return;
+        }
+      });
+    });
+    return fieldids;
   }
   public GetData(idx: number) {
-    if(idx > this.m_RowDataList.length)
-      return null
-    return this.m_RowDataList[idx]
+    if (idx > this.m_RowDataList.length || idx < 0) return null;
+    return this.m_RowDataList[idx];
+  }
+  protected static DataTransform(datatype: string, value: any) {
+    switch (datatype) {
+      case "string":
+        return value.toString();
+      case "boolean":
+        return Boolean(value);
+      case "number":
+        return Number(value);
+      case "bigint":
+        return BigInt(value);
+      case "symbol":
+        return Symbol(value);
+      case "object":
+      case '"undefined"':
+      case "function":
+      default:
+        return value;
+    }
   }
   private CheckRowData(data: RowData) {
     if (data.Fields.length != this.m_Config.headers.length) {
-      console.log(`data structure wrong:expected[${this.m_Config.headers.length}]while[${data.Fields.length}]`)
-      return false
+      console.log(
+        `data structure wrong:expected[${this.m_Config.headers.length}]while[${data.Fields.length}]`
+      );
+      return false;
     }
-    for(let i = 0; i< this.m_Config.headers.length; i++) {
-      let datetype = this.m_Config.headers[i].datatype
-      if ( datetype != "any" && datetype != typeof data.Fields.at(i)) {
-        console.log(`field[${i}]name[${this.m_Config.headers[i].header}]error:required type:${datetype}-->while type:${typeof data.Fields.at(i)} :data[${data.Fields.at(i)}]`)
-        return false
+    for (let i = 0; i < this.m_Config.headers.length; i++) {
+      const datetype = this.m_Config.headers[i].datatype;
+      if (datetype != typeof data.Fields.at(i)) {
+        console.log(
+          `field[${i}]name[${
+            this.m_Config.headers[i].header
+          }]error:required type:${datetype}-->while type:${typeof data.Fields.at(
+            i
+          )} :data[${data.Fields.at(i)}]`
+        );
+        return false;
       }
     }
     return true;
   }
   public InsertData(data: RowData) {
     if (!this.CheckRowData(data)) return 0;
-    return this.m_RowDataList.push(data)
+    return this.m_RowDataList.push(data);
   }
   public DeleteData(idx: number, num = 1) {
     const d = this.m_RowDataList.slice(idx, idx + num);
@@ -90,7 +170,7 @@ class DbCore implements Table {
     return d;
   }
   public ShowHeadList() {
-    console.log(this.m_Config.headers)
+    console.log(this.m_Config.headers);
   }
   public ShowDataList() {
     this.m_RowDataList.forEach((d, i) => {

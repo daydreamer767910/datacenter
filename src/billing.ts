@@ -18,141 +18,205 @@
  */
 import { DbCore } from "./dbcore";
 import Excel from "exceljs";
-import { RowData } from "./table";
-
 
 class Bill extends DbCore {
-  private static m_List: Map<string,Bill> = new Map()
-  public static GetBill(name:string) {
-    return Bill.m_List.get(name)
+  private static m_List: Map<string, Bill> = new Map();
+  public static GetBill(name: string) {
+    return Bill.m_List.get(name);
   }
   constructor(name: string) {
-    super(name)
-    Bill.m_List.set(name,this)
+    super(name);
+    Bill.m_List.set(name, this);
   }
   /**
    * SaveToFile()
    */
   public async SaveToFile(filename: string) {
     const workbook = new Excel.Workbook();
-    workbook.creator = this.m_Config.author
+    workbook.creator = this.m_Config.author;
     try {
-      let worksheet = workbook.addWorksheet(this.m_Config.sheetid)
-      
-      worksheet.columns = this.m_Config.headers
+      const worksheet = workbook.addWorksheet(this.m_Config.sheetid);
+
+      worksheet.columns = this.m_Config.headers;
       //console.log(worksheet.columns)
-  
-      for( let i=2;i< this.m_RowDataList.length+2; i++) {
-        worksheet.getRow(i).values = this.m_RowDataList[i-2].Fields
+      let i = 2;
+      for (; i < this.m_RowDataList.length + 2; i++) {
+        worksheet.getRow(i).values = this.m_RowDataList[i - 2].Fields;
       }
-      workbook.xlsx.writeFile(filename)
-    } catch(e) {
-      console.error(e)
+      //add sum
+      if (this.m_Config.sum) {
+        for (const sum of this.m_Config.sum) {
+          const cell = worksheet
+            .getRow(i)
+            .getCell(this.GetHeaderIndex(sum) + 1);
+          cell.value = this.Sum(sum);
+        }
+      }
+
+      workbook.xlsx.writeFile(filename);
+    } catch (e) {
+      console.error(e);
+    }
+  }
+  protected ParseContent(
+    content: { datasrc: string[]; todo: string }[],
+    srcheader: string[]
+  ) {
+    const datas = content.map((item: { datasrc: string[]; todo: string }) => {
+      const dataidx: number[] = Array.from({ length: item.datasrc.length });
+      dataidx.fill(-1);
+      item.datasrc.forEach((d, j) => {
+        srcheader.forEach((h, i) => {
+          if (d === h) {
+            dataidx[j] = i;
+          }
+        });
+      });
+      const todo = eval(item.todo);
+
+      return { dataidx, todo };
+    });
+    return datas;
+  }
+  public async LoadFromBill(billname: string, rowidxs?: number[]) {
+    const bill = Bill.GetBill(billname);
+    if (!bill) return -1;
+    try {
+      const ret = this.m_RowDataList.length;
+      const datasrc = this.ParseContent(
+        this.m_Config.content,
+        bill.GetHeaderNames()
+      );
+      const rowlist: number[] = new Array<number>(
+        rowidxs ? rowidxs.length : bill.GetDataSize()
+      );
+      if (rowidxs) {
+        for (let i = 0; i < rowidxs.length; i++) {
+          if (rowidxs[i] >= 0 && rowidxs[i] < bill.GetDataSize())
+            rowlist[i] = rowidxs[i];
+          else rowlist[i] = -1;
+        }
+      } else {
+        for (let i = 0; i < bill.GetDataSize(); i++) rowlist[i] = i;
+      }
+      //for(let i=0;i<bill.GetDataSize();i++) {
+      rowlist.forEach((i) => {
+        const fields = datasrc.map((datasrc, j: number) => {
+          const values = bill.GetDataFieldsByIndexs(i, datasrc.dataidx);
+          let value = datasrc.todo ? datasrc.todo(values) : values;
+          if (!value || value === null || value === undefined) {
+            //just in case the content in the accordingly cell is wrong
+            //console.log((value==null)  +':' + (value===undefined))
+            value = this.m_Config.content[j].default;
+          }
+          return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
+        });
+        // let data: RowData = {Fields: fields}
+        if (this.InsertData({ Fields: fields }) <= 0) {
+          console.log("insert row[" + i + "]" + fields.toString() + " failed");
+        }
+      });
+      return this.m_RowDataList.length - ret;
+    } catch (e) {
+      console.error("Error occurred while reading the directory!", e);
+      return 0;
+    }
+  }
+  public async LoadFromFile(filename: string, sheetid: number | string) {
+    const workbook = new Excel.Workbook();
+    try {
+      if (filename.match(/\S*.csv\b/)) {
+        const ret = workbook.csv.readFile(filename).then((ws) => {
+          return this.LoadFromWS(ws);
+        });
+        return ret;
+      } else {
+        const ret = workbook.xlsx.readFile(filename).then((wk) => {
+          return this.LoadFromWS(wk.getWorksheet(sheetid));
+        });
+        return ret;
+      }
+    } catch (e) {
+      console.error(e);
+      return 0;
     }
   }
   /**
    * LoadFromFile
    */
-  public async LoadFromFile(filename: string, sheetid: number|string) {
-    const workbook = new Excel.Workbook();
+  private LoadFromWS(worksheet: Excel.Worksheet) {
     try {
-      //await workbook.csv.readFile(filename)
-      let ret = this.m_RowDataList.length
-      await workbook.xlsx.readFile(filename)
-      let worksheet = workbook.getWorksheet(sheetid)//workbook.worksheets[sheetid]
-      
-      let row = worksheet.getRow(1);// header
-      let datas = this.m_Config.content.map((item:{datasrc:string[],todo:string}) => {
-        let datasrc: string[] = [...item.datasrc]
-        let dataidx = datasrc.map(()=>0)
-        let todo = item.todo
-        return {datasrc, dataidx,todo}
-      })
-      //match the bill headers with the file headers
-      row.eachCell((cell,i) => {
-        for( let j=0;j< datas.length; j++) {
-          datas[j].datasrc.forEach((item: string,k:number)=>{
-            if(item === cell.toString()) {
-              datas[j].dataidx[k] = i
-            }
-          })
-        }
-      })
-      for (let i = 2; i < worksheet.rowCount+1; i++) {
-        row = worksheet.getRow(i);
-        let data: RowData = { Fields: new Array(0) }
-        for( let j=0;j< datas.length; j++) {
-          let values = datas[j].dataidx.map((v:number)=>{
-            //just in case the header defined int the JSON config is missed in the original excel file
-            return v>0?row.getCell(v):this.m_Config.content[j].default
-          })
-          let todo = eval(datas[j].todo)    
-          let value = todo(values)
-          if(!value) {
-            //just in case the content in the accordingly cell is wrong
-            value = this.m_Config.content[j].default
-          }
-          //console.log(`header[${this.m_Config.headers[j].header}] type of value: ${typeof value}`)
-          switch(this.m_Config.headers[j].datatype.toLowerCase()) {
-            case 'string':
-              data.Fields.push(value.toString())
-              break;
-            case 'boolean':
-              data.Fields.push(Boolean(value))
-              break;
-            case 'number':
-              data.Fields.push(Number(value))
-              break;
-            case 'object':
-            case 'any':
-            default:
-              data.Fields.push(value)
-              break;
-          }
-          //data.Fields.push(value)
-        }
+      const ret = this.m_RowDataList.length;
 
+      const row = worksheet.getRow(1); // header
+      const headers: string[] = Array.from({ length: row.cellCount });
+      row.eachCell((cell, i) => {
+        headers[i - 1] = cell.toString();
+      });
+      const datasrc = this.ParseContent(this.m_Config.content, headers);
+      //console.log(headers.flat())
+      for (let i = 2; i < worksheet.rowCount + 1; i++) {
+        const row = worksheet.getRow(i);
+        const fields = datasrc.map((datasrc, j: number) => {
+          const values = datasrc.dataidx.map((v: number) => {
+            //just in case the header defined int the JSON config is missed in the original excel file
+            return v >= 0 ? row.getCell(v + 1).value?.valueOf() : undefined; //this.m_Config.content[j].default
+          });
+          let value = datasrc.todo ? datasrc.todo(values) : values;
+          //console.log(`${value}---------------------------------`)
+          if (!value || value === null || value === undefined) {
+            //just in case the content in the accordingly cell is wrong
+            //console.log(`${value}===${this.m_Config.content[j].default}`)
+            value = this.m_Config.content[j].default;
+            //console.log(datas[j].datasrc+'default:'+value)
+          }
+          return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
+        });
         //console.log("datasize is:"+data.Fields.length)
-        if(this.InsertData(data) <=0){
-          console.log("insert row[" + i +"]" + data.Fields.toString()+" failed")
+        if (this.InsertData({ Fields: fields }) <= 0) {
+          console.log("insert row[" + i + "]" + fields.toString() + " failed");
         }
       }
-      return this.m_RowDataList.length - ret
-    } catch(e) {
-      console.error(e)
+      return this.m_RowDataList.length - ret;
+    } catch (e) {
+      console.error(e);
+      return 0;
     }
   }
 
   public SortData(x: number | string) {
     let idx = -1;
     if (typeof x === "string") {
-      idx = this.m_Config.headers.findIndex((h: { header: string }) => {
-        return h.header === x;
-      });
+      idx = this.m_Config.headers.findIndex(
+        (h: { header: string; key: string }) => {
+          return h.header === x || h.key === x;
+        }
+      );
       //console.log("--------------"+ x + "idx:" + idx)
     } else if (typeof x === "number") {
       idx = x;
     }
-
     if (idx >= 0 && this.m_RowDataList.length > 1) {
       this.m_RowDataList.sort((a, b) => {
-        let ret = 0
-        switch(this.m_Config.headers[idx].datatype.toLowerCase()) {
-          case 'string':
-            ret = a.Fields.at(idx) < b.Fields.at(idx) ? -1 : 1
+        let ret = 0;
+        switch (this.m_Config.headers[idx].datatype.toLowerCase()) {
+          case "string":
+            ret = a.Fields.at(idx) < b.Fields.at(idx) ? -1 : 1;
             break;
-          case 'number':
-            ret = a.Fields.at(idx) - b.Fields.at(idx)
+          case "number":
+            ret = a.Fields.at(idx) - b.Fields.at(idx);
             break;
-          case 'object':
-          case 'any':
+          case "object":
+          case "any":
           default:
             break;
         }
         //console.log("--------------field["+ idx + "] :" + a.Fields.at(idx))
-        return ret
+        return ret;
       });
+      //this.BuildPrimaryKV(idx)
     }
-  }  
+    //throw new Error(`wrong key|name|index[${x}]`)
+  }
 }
 export { Bill };

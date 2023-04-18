@@ -38,7 +38,7 @@ interface Table {
   //SetHeaderList(headers: HeaderInfo[]): void;
   //GetHeader(x: string | number): HeaderInfo | null | undefined;
   InsertData(data: RowData): number;
-  GetData(idx: number) : RowData | null
+  GetData(idx: number): RowData | null;
   GetDataSize(): number;
   DeleteData(idx: number, num: number): RowData[] | null;
 }

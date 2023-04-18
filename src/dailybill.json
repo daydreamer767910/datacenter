@@ -4,17 +4,32 @@
     "author": "露露",
     "sheetid":"订单列表",
     "headers": [
-        {"header": "跟团号",   "key": "sn",    "width": 8 , "datatype": "string","datasrc":{"name": "跟团号"}},
-        {"header": "订单号",   "key": "id",    "width": 15 , "datatype": "string","datasrc":{"name": "订单号"}},
-        {"header": "商品",  "key": "product", "width": 15 , "datatype": "string","datasrc":{"name": "商品"}},
-        {"header": "规格", "key": "specs", "width": 15 , "datatype": "string","default": "","datasrc":{"name": "规格"}},
-        {"header": "数量", "key": "num", "width": 6 , "datatype": "number","default": 0,"datasrc":{"name": "数量"}},
-        {"header": "商品成本价", "key": "cost", "width": 8 , "style":{ "numFmt":"##0.00"},"datatype": "number","default": 0,"datasrc":{"name": "商品成本价"}},
-        {"header": "运费", "key": "freight", "width": 6 , "style":{ "numFmt":"##0.00"},"datatype": "number","default": 0,"datasrc":{"name": "运费"}},
-        {"header": "收货人", "key": "client", "width": 15 , "datatype": "string","datasrc":{"name": "收货人"}},
-        {"header": "联系电话", "key": "phone", "width": 15 , "datatype": "string","datasrc":{"name": "联系电话"}},
-        {"header": "详细地址", "key": "addr", "width": 30 , "datatype": "string","datasrc":{"name": "详细地址"}},
-        {"header": "物流公司", "key": "couriercom", "width": 15 , "datatype": "string","default":"","datasrc":{"name": "物流公司"}},
-        {"header": "物流单号", "key": "couriersn", "width": 15 , "datatype": "string","default":"","datasrc":{"name": "物流单号"}}
-    ]
+        {"header": "跟团号",   "key": "sn",    "width": 8 , "datatype": "string"},
+        {"header": "订单号",   "key": "id",    "width": 15 , "datatype": "string"},
+        {"header": "商品",  "key": "product", "width": 15 , "datatype": "string"},
+        {"header": "规格", "key": "specs", "width": 15 , "datatype": "string"},
+        {"header": "数量", "key": "num", "width": 6 , "datatype": "number"},
+        {"header": "商品成本价", "key": "cost", "width": 8 , "style":{ "numFmt":"##0.00"},"datatype": "number"},
+        {"header": "运费", "key": "freight", "width": 6 , "style":{ "numFmt":"##0.00"},"datatype": "number"},
+        {"header": "收货人", "key": "client", "width": 15 , "datatype": "string"},
+        {"header": "联系电话", "key": "phone", "width": 15 , "datatype": "string"},
+        {"header": "详细地址", "key": "addr", "width": 30 , "datatype": "string"},
+        {"header": "物流公司", "key": "couriercom", "width": 15 , "datatype": "string"},
+        {"header": "物流单号", "key": "couriersn", "width": 15 , "datatype": "string"}
+    ],
+    "content":[
+        {"datasrc":["跟团号"]},
+        {"datasrc":["订单号"]},
+        {"datasrc":["商品"]},
+        {"datasrc":["规格"]},
+        {"datasrc":["数量"]},
+        {"datasrc":["商品成本价"]},
+        {"datasrc":["运费"]},
+        {"datasrc":["收货人"]},
+        {"datasrc":["联系电话"]},
+        {"datasrc":["详细地址"]},
+        {"datasrc":["物流公司"]},
+        {"datasrc":["物流单号"]}
+    ],
+    "sum":["num","商品成本价", "运费"]
 }

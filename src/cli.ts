@@ -22,11 +22,11 @@ if (!process.argv.slice(2).length) {
     process.argv[2].toLowerCase() === "p" ||
     process.argv[2].toLowerCase() === "paidan"
   ) {
-    APP.paidan(sourceDir,destDir)
+    APP.paidan(sourceDir, destDir);
   } else if (
     process.argv[2].toLowerCase() === "h" ||
     process.argv[2].toLowerCase() === "huidan"
   ) {
-    APP.huidan(sourceDir,destDir)
+    APP.huidan(sourceDir, destDir);
   }
 }

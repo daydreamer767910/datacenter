@@ -1,4 +1,4 @@
-import { Table, HeaderInfo, RowData } from "./table";
+import { Table, RowData } from "./table";
 import { DbCore } from "./dbcore";
 
-export { Table, HeaderInfo, RowData, DbCore };
+export { Table, RowData, DbCore };
