@@ -33,7 +33,7 @@
         {"datasrc":["区"]},
         {"datasrc":["详细地址"]},
         {"datasrc":["收货地址"],"default":""},
-        {"datasrc":["买家留言"],"todo":"(a)=>'发货电话:18665316526,发货人:刘露'"},
+        {"datasrc":["买家留言"],"default":"发货电话:18665316526,发货人:刘露"},
         {"datasrc":["商品编码"],"default":"607462150373","todo":"(a)=>a.toString().replace(/-(\\S*)/g,'')"},
         {"datasrc":["商品编码"],"default":"1","todo":"(a)=>a.toString().substring(a.toString().length-1)"}
     ]

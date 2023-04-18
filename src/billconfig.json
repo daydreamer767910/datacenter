@@ -51,7 +51,7 @@
         {"datasrc":["市"]},
         {"datasrc":["区"]},
         {"datasrc":["详细地址"]},
-        {"datasrc":["物流公司"],"default":"","todo":"(a)=>a"},
+        {"datasrc":["物流公司"]},
         {"datasrc":["物流单号"],"default":"","todo":"(a)=>a"}
     ],
     "sum":["num","商品成本价", "运费","订单金额","退款金额"]
