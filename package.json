@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "description": "ktt data collection",
   "main": "index.js",
+  "types": "index.d.ts",
   "bin": {
     "cli": "./bin/cli.js"
   },
@@ -14,7 +15,7 @@
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint --fix src --ext .ts --max-warnings=10",
     "prettier": "prettier --write \"src/**/*.ts\"",
-    "start": "ts-node src/cli.ts paidan /lulu/Git-workspace/datacenter/test /lulu/Git-workspace/datacenter/test/bak"
+    "start": "ts-node src/cli.ts paidan ../test ../test/bak"
   },
   "author": "bill",
   "license": "ISC",
