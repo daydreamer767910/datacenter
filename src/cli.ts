@@ -23,10 +23,14 @@ if (!process.argv.slice(2).length) {
     process.argv[2].toLowerCase() === "paidan"
   ) {
     APP.paidan(sourceDir, destDir);
+    console.log("the program will exit in 10 sec!");
+    setTimeout(() => console.log("exit!"), 10000);
   } else if (
     process.argv[2].toLowerCase() === "h" ||
     process.argv[2].toLowerCase() === "huidan"
   ) {
     APP.huidan(sourceDir, destDir);
+    console.log("the program will exit in 10 sec!");
+    setTimeout(() => console.log("exit!"), 10000);
   }
 }

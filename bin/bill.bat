@@ -14,9 +14,8 @@ move %src%*.xlsx %bak%
 echo the bills are transfered to %bak%!!
 
 if exist %send% (
-	ts-node src/cli.ts paidan %bak% %send%
+	cli paidan %bak% %send%
 	echo job completly done!
 )
-
 pause
 
