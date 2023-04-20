@@ -52,13 +52,19 @@ class DbCore implements Table {
     );
   }
 
-  public Sum(x: string) {
+  public Sum(x: string, rows: number[] = []) {
     let data = 0;
-    const idx = this.GetHeaderIndex(x);
-    if (idx >= 0) {
-      this.m_RowDataList.forEach((value) => {
-        data += value.Fields.at(idx);
-      });
+    const column = this.GetHeaderIndex(x);
+    if (column >= 0) {
+      if (rows.length == 0) {
+        for (const i in this.m_RowDataList) {
+          data += this.m_RowDataList[i].Fields.at(column);
+        }
+      } else {
+        for (const i of rows) {
+          data += this.m_RowDataList[i].Fields.at(column);
+        }
+      }
     }
     return data;
   }

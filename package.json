@@ -12,7 +12,7 @@
     "build": "npm run lint && npm run prettier && tsc && cp src/*.json dist/",
     "clean": "rm -fr dist/*",
     "cli-paidan": "ts-node src/cli.ts paidan ../test ../test/bak",
-    "cli-huidan": "ts-node src/cli.ts paidan ../test ../test/bak",
+    "cli-client": "ts-node src/cli.ts c ../test ../test/bak",
     "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "lint": "eslint --fix src --ext .ts --max-warnings=10",
     "prettier": "prettier --write \"src/**/*.ts\"",

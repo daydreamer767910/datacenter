@@ -32,5 +32,12 @@ if (!process.argv.slice(2).length) {
     APP.huidan(sourceDir, destDir);
     console.log("the program will exit in 10 sec!");
     setTimeout(() => console.log("exit!"), 10000);
+  } else if (
+    process.argv[2].toLowerCase() === "c" ||
+    process.argv[2].toLowerCase() === "client"
+  ) {
+    APP.client(sourceDir, destDir);
+    //console.log("the program will exit in 10 sec!");
+    //setTimeout(() => console.log("exit!"), 10000);
   }
 }

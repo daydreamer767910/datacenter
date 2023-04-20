@@ -78,6 +78,62 @@ class Bill extends DbCore {
     });
     return datas;
   }
+  public async LoadClientFromBill(billname: string, rowidxs: number[]) {
+    const bill = Bill.GetBill(billname);
+    if (!bill) return -1;
+    try {
+      const ret = this.m_RowDataList.length;
+      const datasrc = this.ParseContent(
+        this.m_Config.content,
+        bill.GetHeaderNames()
+      );
+      //for(let i=0;i<bill.GetDataSize();i++) {
+      let total_fields: any[] = [];
+      rowidxs.forEach((i) => {
+        const fields = datasrc.map((datasrc, j: number) => {
+          const values = bill.GetDataFieldsByIndexs(i, datasrc.dataidx);
+          values.forEach((value, i: number) => {
+            if (value === undefined) {
+              values[i] = this.m_Config.content[j].default;
+              //console.log(value);
+            }
+          });
+          let value = datasrc.todo ? datasrc.todo(values) : values;
+          if (!value || value === null || value === undefined) {
+            //just in case the content in the accordingly cell is wrong
+            //console.log((value==null)  +':' + (value===undefined))
+            value = this.m_Config.content[j].default;
+          }
+          return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
+        });
+        if (total_fields.length == 0) {
+          total_fields = fields;
+        } else {
+          total_fields.forEach((v, i) => {
+            if (typeof v === "number") {
+              total_fields[i] += fields[i];
+            } else if (typeof v === "string" && v != fields[i]) {
+              const s1 = v.toString();
+              const s2 = fields[i].toString();
+              if (s1.length < s2.length && s2.includes(s1)) {
+                total_fields[i] = fields[i];
+              }
+            }
+          });
+        }
+      });
+      // let data: RowData = {Fields: fields}
+      if (this.InsertData({ Fields: total_fields }) <= 0) {
+        console.log(
+          "insert row[" + ret + "]" + total_fields.toString() + " failed"
+        );
+      }
+      return this.m_RowDataList.length - ret;
+    } catch (e) {
+      console.error("Error occurred while reading the directory!", e);
+      return 0;
+    }
+  }
   public async LoadFromBill(billname: string, rowidxs?: number[]) {
     const bill = Bill.GetBill(billname);
     if (!bill) return -1;
@@ -138,7 +194,12 @@ class Bill extends DbCore {
         return ret;
       } else {
         const ret = workbook.xlsx.readFile(filename).then((wk) => {
-          return this.LoadFromWS(wk.getWorksheet(sheetid));
+          const ws = wk.getWorksheet(sheetid);
+          if (ws === undefined) {
+            console.log(`can not find sheet[${sheetid}] in ${filename}`);
+            return 0;
+          }
+          return this.LoadFromWS(ws);
         });
         return ret;
       }
@@ -209,10 +270,10 @@ class Bill extends DbCore {
         let ret = 0;
         switch (this.m_Config.headers[idx].datatype.toLowerCase()) {
           case "string":
-            ret = a.Fields.at(idx) < b.Fields.at(idx) ? -1 : 1;
+            ret = b.Fields.at(idx) < a.Fields.at(idx) ? -1 : 1;
             break;
           case "number":
-            ret = a.Fields.at(idx) - b.Fields.at(idx);
+            ret = b.Fields.at(idx) - a.Fields.at(idx);
             break;
           case "object":
           case "any":

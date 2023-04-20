@@ -1,0 +1,24 @@
+{
+    "input":{"sheetid":"商品列表"},
+    "name": "client",
+    "author": "露露",
+    "sheetid":"客户列表",
+    "primarykey": "cost",
+    "headers": [
+        {"header": "客户名称", "key": "client", "width": 15 , "datatype": "string"},
+        {"header": "联系电话", "key": "phone", "width": 15 , "datatype": "string"},
+        {"header": "数量", "key": "num", "width": 15 , "datatype": "number"},
+        {"header": "消费额", "key": "cost", "width": 15 , "style":{ "numFmt":"##0.00"},"datatype": "number"},
+        {"header": "详细地址", "key": "addr", "width": 50 , "datatype": "string"},
+        {"header": "团长", "key": "leader", "width": 15 , "datatype": "string"}
+    ],
+    "content":[
+        {"datasrc":["收货人"]},
+        {"datasrc":["联系电话"]},
+        {"datasrc":["数量"]},
+        {"datasrc":["订单金额"]},
+        {"datasrc":["详细地址"]},
+        {"datasrc":["团长"]}
+    ],
+    "sum":["num","cost"]
+}
