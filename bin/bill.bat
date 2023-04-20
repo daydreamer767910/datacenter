@@ -3,7 +3,7 @@ set var=%date:~5,2%%date:~8,2%
 set src=e:\ktt\dailybill\
 set send=%src%%var%\
 set bak=%src%%var%\bak\
-
+echo %date%
 if not exist %send% (
 	mkdir %send%
 ) 
