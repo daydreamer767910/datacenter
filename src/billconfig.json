@@ -32,7 +32,7 @@
     "content":[
         {"datasrc":["跟团号"]},
         {"datasrc":["订单号"]},
-        {"datasrc":["团购标题","商品编码"],"default":"U","todo":"(a)=>a.toString().match(/【([A-Z]?\\d{3}-?\\d{0,2})】/ig)?.join().replace(/【|w|】|-\\d*/ig,'').replace(/a\\d*/ig,'A').replace(/f\\d*/ig,'F').replace(/h\\d*/ig,'H')"},
+        {"datasrc":["团购标题","商品编码"],"default":"U","todo":"(a)=>a.join('').toString().match(/【([A-Z]?\\d{3}-?\\d{0,2})】/ig)?.join().replace(/【|w|】|-\\d*/ig,'').replace(/a\\d*/ig,'A').replace(/f\\d*/ig,'F').replace(/h\\d*/ig,'H')"},
         {"datasrc":["团长备注"]},
         {"datasrc":["支付时间"]},
         {"datasrc":["商品","商品名称"],"default":"???","todo":"(a)=>a.join('')"},

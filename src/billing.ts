@@ -78,6 +78,13 @@ class Bill extends DbCore {
     });
     return datas;
   }
+  private calculate(todo: any, params: any[], def?: any) {
+    let value = todo ? todo(params) : params.join();
+    if (!value || value === null || value === undefined) {
+      value = def ? def : value;
+    }
+    return value;
+  }
   public async LoadClientFromBill(billname: string, rowidxs: number[]) {
     const bill = Bill.GetBill(billname);
     if (!bill) return -1;
@@ -92,18 +99,17 @@ class Bill extends DbCore {
       rowidxs.forEach((i) => {
         const fields = datasrc.map((datasrc, j: number) => {
           const values = bill.GetDataFieldsByIndexs(i, datasrc.dataidx);
-          values.forEach((value, i: number) => {
-            if (value === undefined) {
-              values[i] = this.m_Config.content[j].default;
-              //console.log(value);
-            }
-          });
-          let value = datasrc.todo ? datasrc.todo(values) : values;
+          const value = this.calculate(
+            datasrc.todo,
+            values,
+            this.m_Config.content[j].default
+          );
+          /* let value = datasrc.todo ? datasrc.todo(values) : values.join();
           if (!value || value === null || value === undefined) {
             //just in case the content in the accordingly cell is wrong
             //console.log((value==null)  +':' + (value===undefined))
-            value = this.m_Config.content[j].default;
-          }
+            value = this.m_Config.content[j].default?this.m_Config.content[j].default:value;
+          }*/
           return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
         });
         if (total_fields.length == 0) {
@@ -159,18 +165,12 @@ class Bill extends DbCore {
       rowlist.forEach((i) => {
         const fields = datasrc.map((datasrc, j: number) => {
           const values = bill.GetDataFieldsByIndexs(i, datasrc.dataidx);
-          values.forEach((value, i: number) => {
-            if (value === undefined) {
-              values[i] = this.m_Config.content[j].default;
-              //console.log(value);
-            }
-          });
-          let value = datasrc.todo ? datasrc.todo(values) : values;
-          if (!value || value === null || value === undefined) {
-            //just in case the content in the accordingly cell is wrong
-            //console.log((value==null)  +':' + (value===undefined))
-            value = this.m_Config.content[j].default;
-          }
+
+          const value = this.calculate(
+            datasrc.todo,
+            values,
+            this.m_Config.content[j].default
+          );
           return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
         });
         // let data: RowData = {Fields: fields}
@@ -227,18 +227,13 @@ class Bill extends DbCore {
         const fields = datasrc.map((datasrc, j: number) => {
           const values = datasrc.dataidx.map((v: number) => {
             //just in case the header defined int the JSON config is missed in the original excel file
-            return v >= 0
-              ? row.getCell(v + 1).value?.valueOf()
-              : this.m_Config.content[j].default;
+            return v >= 0 ? row.getCell(v + 1).value?.valueOf() : undefined;
           });
-          let value = datasrc.todo ? datasrc.todo(values) : values;
-          //console.log(`${value}---------------------------------`)
-          if (!value || value === null || value === undefined) {
-            //just in case the content in the accordingly cell is wrong
-            //console.log(`[${j}]${value}===${this.m_Config.content[j].default}`)
-            value = this.m_Config.content[j].default;
-            //console.log(datas[j].datasrc+'default:'+value)
-          }
+          const value = this.calculate(
+            datasrc.todo,
+            values,
+            this.m_Config.content[j].default
+          );
           return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
         });
         //console.log("datasize is:"+data.Fields.length)
