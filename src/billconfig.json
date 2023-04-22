@@ -35,7 +35,7 @@
         {"datasrc":["团购标题","商品编码"],"default":"U","todo":"(a)=>a.join('').toString().match(/【([A-Z]?\\d{3}-?\\d{0,2})】/ig)?.join().replace(/【|w|】|-\\d*/ig,'').replace(/a\\d*/ig,'A').replace(/f\\d*/ig,'F').replace(/h\\d*/ig,'H')"},
         {"datasrc":["团长备注"]},
         {"datasrc":["支付时间"]},
-        {"datasrc":["商品","商品名称"],"default":"???","todo":"(a)=>a.join('')"},
+        {"datasrc":["商品","商品名称"],"default":"???","todo":"(a)=>(a[0]===undefined)?a[1]:a[0]"},
         {"datasrc":["商品编码"],"todo":"(a)=>a"},
         {"datasrc":["规格"]},
         {"datasrc":["分类"]},
@@ -52,7 +52,7 @@
         {"datasrc":["区"]},
         {"datasrc":["详细地址"]},
         {"datasrc":["物流公司"]},
-        {"datasrc":["物流单号"],"default":"","todo":"(a)=>a"}
+        {"datasrc":["物流单号"]}
     ],
     "sum":["num","商品成本价", "运费","订单金额","退款金额"]
 }

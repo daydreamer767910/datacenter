@@ -29,19 +29,24 @@ const format_date = () => {
   fm += d < 10 ? "0" + d : d;
   return fm;
 };
-async function load_allbills(srcDir: string, dstDir: string) {
+async function load_allbills(srcDir: string) {
   try {
     const bill = new Bill(billconfig);
     //bill.SetHeaderList(billconfig.headers)
     const files = fs.readdirSync(srcDir);
+    let totalrows = 0;
     for (const file of files) {
       if (file.match(/\S*.xlsx|\S*.csv\b/)) {
         console.log(`start to load ${file}`);
         await bill
           .LoadFromFile(path.resolve(srcDir, file), billconfig.input.sheetid)
-          .then((num) => console.log(`${num ? num : 0} rows are loaded`));
+          .then((num) => {
+            totalrows += num;
+            console.log(`${num} rows are loaded`);
+          });
       }
     }
+    console.log(`total ${totalrows} rows are loaded`);
     return bill;
   } catch (error) {
     console.error("Error occurred while reading the directory!", error);
@@ -81,7 +86,7 @@ async function dispatch_bills(
   });
 }
 function paidan(srcDir: string, dstDir: string) {
-  load_allbills(srcDir, dstDir).then((bill) => {
+  load_allbills(srcDir).then((bill) => {
     bill.SortData(billconfig.primarykey);
     //bill.ShowDataList()
     //const date = new Date();
@@ -101,12 +106,12 @@ function huidan(srcDir: string, dstDir: string) {
 }
 
 function client(srcDir: string, dstDir: string) {
-  load_allbills(srcDir, dstDir).then((bill) => {
+  load_allbills(srcDir).then((bill) => {
     bill.SortData("phone");
     const clientlist = bill.BuildPrimaryKV("phone");
 
     const clientbill = new Bill(client_json);
-    clientlist.forEach((v: number[], k) => {
+    clientlist.forEach((v: number[]) => {
       clientbill.LoadClientFromBill(billconfig.name, v);
     });
     clientbill.SortData(client_json.primarykey);
