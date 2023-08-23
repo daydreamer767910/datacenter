@@ -8,10 +8,17 @@ program
   .description("An example CLI for ktt managing")
   .option("p, paidan  [sourceDir,destDir]", "generate the daily bill")
   .option("h, huidan [sourceDir,destDir]", "merge the courier bill")
+  .option("f, filter [filter,sourceDir,destDir]", "merge the filtered bill")
+  .option("c, client [sourceDir,destDir]", "collect the client info from bill")
   .parse(process.argv);
 //console.info(process.argv.slice(2).length);
 if (!process.argv.slice(2).length) {
   program.outputHelp();
+} else if (process.argv.slice(2).length == 4 && process.argv[2] === "filter") {
+  const filterName = process.argv[3];
+  const sourceDir = path.resolve(__dirname, process.argv[4]);
+  const destDir = path.resolve(__dirname, process.argv[5]);
+  APP.filterBills(sourceDir, destDir, filterName);
 } else if (process.argv.slice(2).length == 3) {
   const sourceDir = path.resolve(__dirname, process.argv[3]);
   const destDir = path.resolve(__dirname, process.argv[4]);
@@ -30,8 +37,8 @@ if (!process.argv.slice(2).length) {
     process.argv[2].toLowerCase() === "huidan"
   ) {
     APP.huidan(sourceDir, destDir);
-    console.log("the program will exit in 10 sec!");
-    setTimeout(() => console.log("exit!"), 10000);
+    //console.log("the program will exit in 10 sec!");
+    //setTimeout(() => console.log("exit!"), 10000);
   } else if (
     process.argv[2].toLowerCase() === "c" ||
     process.argv[2].toLowerCase() === "client"

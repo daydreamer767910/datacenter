@@ -79,7 +79,8 @@ class Bill extends DbCore {
     return datas;
   }
   private calculate(todo: any, params: any[], def?: any) {
-    let value = todo ? todo(params) : params.join();
+    //console.log(typeof params + params.length)
+    let value = todo ? todo(params) : params;
     if (!value || value === null || value === undefined) {
       value = def ? def : value;
     }
@@ -192,7 +193,7 @@ class Bill extends DbCore {
           return this.LoadFromWS(ws);
         });
         return ret;
-      } else {
+      } else if (filename.match(/\S*.xlsx\b/)) {
         const ret = workbook.xlsx.readFile(filename).then((wk) => {
           const ws = wk.getWorksheet(sheetid);
           if (ws === undefined) {
@@ -202,6 +203,9 @@ class Bill extends DbCore {
           return this.LoadFromWS(ws);
         });
         return ret;
+      } else {
+        console.error(`unsurpport type of file[${filename}]`);
+        return 0;
       }
     } catch (e) {
       console.error(e);
@@ -224,16 +228,32 @@ class Bill extends DbCore {
       //console.log(headers.flat())
       for (let i = 2; i < worksheet.rowCount + 1; i++) {
         const row = worksheet.getRow(i);
-        const fields = datasrc.map((datasrc, j: number) => {
-          const values = datasrc.dataidx.map((v: number) => {
+        const fields = datasrc.map((srcitem, j: number) => {
+          const values = srcitem.dataidx.map((jj: number) => {
             //just in case the header defined int the JSON config is missed in the original excel file
-            return v >= 0 ? row.getCell(v + 1).value?.valueOf() : undefined;
+            if (jj >= 0) {
+              const cell = row.getCell(jj + 1);
+              switch (cell.type) {
+                case Excel.ValueType.RichText:
+                  return cell.text;
+                case Excel.ValueType.Formula:
+                  return cell.result;
+                case Excel.ValueType.Date:
+                  return cell.toString();
+                default:
+                  return cell.value;
+              }
+            }
+            return undefined;
+            //return jj >= 0 ? row.getCell(jj + 1).value?.valueOf() : undefined;
           });
+
           const value = this.calculate(
-            datasrc.todo,
+            srcitem.todo,
             values,
             this.m_Config.content[j].default
           );
+          //console.log(`--------------------${value}[${typeof value}]---------------------------`)
           return Bill.DataTransform(this.m_Config.headers[j].datatype, value);
         });
         //console.log("datasize is:"+data.Fields.length)

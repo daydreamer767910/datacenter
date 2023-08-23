@@ -1,6 +1,7 @@
 import { Bill } from "./billing";
 import * as path from "path";
 import * as fs from "fs";
+import * as BillFs from "./billfs";
 
 const billconfig = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "billconfig.json"), "utf-8")
@@ -16,6 +17,9 @@ const dailybill_F = JSON.parse(
 );
 const dailybill_H = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "dailybill_H.json"), "utf-8")
+);
+const dailybill_back = JSON.parse(
+  fs.readFileSync(path.resolve(__dirname, "dailybill_back.json"), "utf-8")
 );
 const client_json = JSON.parse(
   fs.readFileSync(path.resolve(__dirname, "client.json"), "utf-8")
@@ -102,7 +106,8 @@ function paidan(srcDir: string, dstDir: string) {
 }
 
 function huidan(srcDir: string, dstDir: string) {
-  console.log(`to be done for huidan ${srcDir}...${dstDir}`);
+  console.log(`executing huidan ${srcDir}...${dstDir}`);
+  filterBills(srcDir, dstDir, "回单|");
 }
 
 function client(srcDir: string, dstDir: string) {
@@ -120,4 +125,37 @@ function client(srcDir: string, dstDir: string) {
   });
 }
 
-export { paidan, huidan, client };
+function filterBills(srcDir: string, dstDir: string, filterName?: string) {
+  const files: string[] = [];
+  BillFs.fileSearch(srcDir, files, filterName).then(async () => {
+    console.log(files);
+    try {
+      const bill = new Bill(dailybill_back);
+      //bill.SetHeaderList(billconfig.headers)
+      let totalrows = 0;
+      for (const file of files) {
+        for (let i = 0; i < 3; i++) {
+          const num = await bill.LoadFromFile(file, i + 1);
+          if (num === 0) continue;
+          totalrows += num;
+          break;
+        }
+      }
+      console.log(`total ${totalrows} rows are loaded`);
+      bill.SortData("product");
+      //bill.ShowDataList()
+      //const date = new Date();
+      let filename = `${filterName}-${format_date()}-(${bill.Sum("num")}).xlsx`;
+      //filename = filename.replace(/\*|\\|\/|\||\>|\<|\:|\?/gi,'');
+      filename = filename.replace(/\*|\\|\/|\||\?/gi, "");
+      filename = path.resolve(dstDir, filename);
+      //console.log(`${filename}`)
+      bill.SaveToFile(filename);
+      console.log(`${filename} is generated`);
+    } catch (error) {
+      console.error("Error occurred while reading the directory!", error);
+    }
+  });
+}
+
+export { paidan, huidan, client, filterBills };

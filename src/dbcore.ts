@@ -123,23 +123,28 @@ class DbCore implements Table {
     return this.m_RowDataList[idx];
   }
   protected static DataTransform(datatype: string, value: any) {
-    switch (datatype) {
-      case "string":
-        return value.toString();
-      case "boolean":
-        return Boolean(value);
-      case "number":
-        return Number(value);
-      case "bigint":
-        return BigInt(value);
-      case "symbol":
-        return Symbol(value);
-      case "object":
-      case '"undefined"':
-      case "function":
-      default:
-        return value;
+    //const aaa = typeof value;
+    if (typeof value !== datatype) {
+      //console.log(`type unmatched and to be transfered![${datatype}] is expeted while [${typeof value}] is presented for[${value}]`);
+      switch (datatype) {
+        case "string":
+          return value.toString();
+        case "boolean":
+          return Boolean(value);
+        case "number":
+          return Number(value);
+        case "bigint":
+          return BigInt(value);
+        case "symbol":
+          return Symbol(value);
+        case "object":
+        case "undefined":
+        case "function":
+        default:
+          return value;
+      }
     }
+    return value;
   }
   private CheckRowData(data: RowData) {
     if (data.Fields.length != this.m_Config.headers.length) {
@@ -157,6 +162,16 @@ class DbCore implements Table {
           }]error:required type:${datetype}-->while type:${typeof data.Fields.at(
             i
           )} :data[${data.Fields.at(i)}]`
+        );
+        return false;
+      }
+      /* check if madatory field is null*/
+      const content = this.m_Config.headers[i].content;
+      if (content === "madatory" && data.Fields.at(i).length === 0) {
+        console.log(
+          `field[${i}]name[${
+            this.m_Config.headers[i].header
+          }]error:required madatory-->while data[${data.Fields.at(i)}] is null`
         );
         return false;
       }
