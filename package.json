@@ -1,6 +1,6 @@
 {
   "name": "datacenter",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "ktt data collection",
   "main": "index.js",
   "types": "index.d.ts",

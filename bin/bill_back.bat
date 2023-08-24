@@ -19,7 +19,7 @@ if not exist %bak% (
 ) 
 
 if exist %send% (
-	cli haidan %send% %bak%
+	cli huidan %send% %bak%
 	echo job completly done!
 )
 pause
