@@ -188,12 +188,12 @@ class Bill extends DbCore {
   public async LoadFromFile(filename: string, sheetid: number | string) {
     const workbook = new Excel.Workbook();
     try {
-      if (filename.match(/\S*.csv\b/)) {
+      if (filename.match(/\S*.csv$/)) {
         const ret = workbook.csv.readFile(filename).then((ws) => {
           return this.LoadFromWS(ws);
         });
         return ret;
-      } else if (filename.match(/\S*.xlsx\b/)) {
+      } else if (filename.match(/\S*.xlsx$/)) {
         const ret = workbook.xlsx.readFile(filename).then((wk) => {
           const ws = wk.getWorksheet(sheetid);
           if (ws === undefined) {

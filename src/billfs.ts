@@ -25,7 +25,7 @@ async function fileSearch(
   filterFiles: string[],
   filterName?: string
 ) {
-  const filter = new RegExp(`${filterName ? filterName : ""}\\S*.xlsx`, "g");
+  const filter = new RegExp(`${filterName ? filterName : ""}\\S*.xlsx$`, "gi");
   //console.log(`search dir[${dirPath}]`)
   const files = await fsReadDir(dirPath);
   //console.log(`${files.length} files or dir found`)
