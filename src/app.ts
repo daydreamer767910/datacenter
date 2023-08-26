@@ -142,7 +142,7 @@ function filterBills(srcDir: string, dstDir: string, filterName?: string) {
         }
       }
       console.log(`total ${totalrows} rows are loaded`);
-      bill.SortData("product");
+      bill.SortData(dailybill_back.primarykey);
       //bill.ShowDataList()
       //const date = new Date();
       let filename = `${filterName}-${format_date()}-(${bill.Sum("num")}).xlsx`;

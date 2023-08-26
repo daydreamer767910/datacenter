@@ -3,6 +3,7 @@
     "name": "dailybill_back",
     "author": "露露",
     "sheetid":"订单列表",
+    "primarykey": "product",
     "headers": [
         {"header": "跟团号",   "key": "sn",    "width": 8 , "datatype": "string"},
         {"header": "订单号",   "key": "id",    "width": 15 , "datatype": "string", "content": "madatory"},
