@@ -1,5 +1,5 @@
 @echo off
-set var=%date:~5,2%%date:~8,2%
+set var=%date:~8,2%%date:~11,2%
 set src=e:\ktt\dailybill\
 set send=%src%%var%\
 set bak=%src%%var%\bak\
