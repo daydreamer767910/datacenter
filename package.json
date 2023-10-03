@@ -1,9 +1,11 @@
 {
-  "name": "datacenter",
+  "name": "@daydreamer767910/datacenter",
   "version": "2.0.1",
   "author": "bill.liu",
   "license": "ktt",
   "description": "ktt data collection",
+  "repository": "https://github.com/daydreamer767910/datacenter",
+  "homepage": "https://github.com/daydreamer767910/datacenter#readme",
   "main": "dist/ktt.js",
   "types": "index.d.ts",
   "bin": {
@@ -14,6 +16,10 @@
     "bill_back": "bin/bill_back.bat",
     "bill_back_pre": "bin/bill_back_pre.bat"
   },
+  "keywords": [
+    "cli",
+    "ktt"
+  ],
   "dependencies": {
     "commander": "^10.0.0",
     "dotenv": "^16.3.1",
