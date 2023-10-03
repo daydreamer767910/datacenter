@@ -16,6 +16,7 @@
  *   limitations under the License.
  *
  */
+import { GetLogger } from "./logger";
 import { Table, RowData } from "./table";
 
 class DbCore implements Table {
@@ -118,6 +119,20 @@ class DbCore implements Table {
     });
     return fieldids;
   }
+  public GetDataFieldsByKeys(RowId: number, FieldKeys: string[]) {
+    const rowdata = this.GetData(RowId);
+    const fieldids = Array.from({ length: FieldKeys.length });
+
+    FieldKeys.forEach((v, i) => {
+      this.m_Config.headers.forEach((h: { key: string }, j: number) => {
+        if (v === h.key) {
+          fieldids[i] = rowdata?.Fields[j];
+          return;
+        }
+      });
+    });
+    return fieldids;
+  }
   public GetData(idx: number) {
     if (idx > this.m_RowDataList.length || idx < 0) return null;
     return this.m_RowDataList[idx];
@@ -144,11 +159,15 @@ class DbCore implements Table {
           return value;
       }
     }
+    if (datatype === "number" && isNaN(value)) {
+      return 0;
+    }
     return value;
   }
   private CheckRowData(data: RowData) {
     if (data.Fields.length != this.m_Config.headers.length) {
-      console.log(
+      GetLogger("app").log(
+        "warn",
         `data structure wrong:expected[${this.m_Config.headers.length}]while[${data.Fields.length}]`
       );
       return false;
@@ -156,7 +175,8 @@ class DbCore implements Table {
     for (let i = 0; i < this.m_Config.headers.length; i++) {
       const datetype = this.m_Config.headers[i].datatype;
       if (datetype != typeof data.Fields.at(i)) {
-        console.log(
+        GetLogger("app").log(
+          "warn",
           `field[${i}]name[${
             this.m_Config.headers[i].header
           }]error:required type:${datetype}-->while type:${typeof data.Fields.at(
@@ -168,7 +188,8 @@ class DbCore implements Table {
       /* check if madatory field is null*/
       const content = this.m_Config.headers[i].content;
       if (content === "madatory" && data.Fields.at(i).length === 0) {
-        console.log(
+        GetLogger("app").log(
+          "warn",
           `field[${i}]name[${
             this.m_Config.headers[i].header
           }]error:required madatory-->while data[${data.Fields.at(i)}] is null`

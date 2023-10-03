@@ -18,6 +18,9 @@
  */
 import { DbCore } from "./dbcore";
 import Excel from "exceljs";
+import { GetLogger } from "./logger";
+import { Billing } from "./entity/KttBilling";
+import { AppDataSource } from "./data-source";
 
 class Bill extends DbCore {
   private static m_List: Map<string, Bill> = new Map();
@@ -27,6 +30,33 @@ class Bill extends DbCore {
   constructor(config: any) {
     super(config);
     Bill.m_List.set(config.name, this);
+  }
+
+  public async SaveToDB() {
+    const billing = new Billing();
+    billing.initialize();
+    const dbkeys = Object.keys(billing);
+    //console.log(dbkeys);
+    //const exlkeys = this.GetHeaderKeys();
+    //const headkeys = dbkeys.filter((item) => exlkeys.includes(item));
+    const ret = { sucess: 0, failure: 0 };
+    for (let row = 0; row < this.m_RowDataList.length; row++) {
+      this.GetDataFieldsByKeys(row, dbkeys).forEach((field, i) => {
+        Object.defineProperty(billing, dbkeys[i], {
+          value: field,
+          writable: true,
+        });
+      });
+      billing.pk = undefined;
+      try {
+        await AppDataSource.manager.save(billing);
+        ret.sucess++;
+      } catch (error) {
+        GetLogger("db").log("error", error);
+        ret.failure++;
+      }
+    }
+    return ret;
   }
   /**
    * SaveToFile()
@@ -53,9 +83,10 @@ class Bill extends DbCore {
         }
       }
 
-      workbook.xlsx.writeFile(filename);
+      return await workbook.xlsx.writeFile(filename);
     } catch (e) {
-      console.error(e);
+      GetLogger("sys").error(e);
+      return Promise.reject(e);
     }
   }
   protected ParseContent(
@@ -86,7 +117,7 @@ class Bill extends DbCore {
     }
     return value;
   }
-  public async LoadClientFromBill(billname: string, rowidxs: number[]) {
+  public LoadClientFromBill(billname: string, rowidxs: number[]) {
     const bill = Bill.GetBill(billname);
     if (!bill) return -1;
     try {
@@ -131,7 +162,8 @@ class Bill extends DbCore {
       });
       // let data: RowData = {Fields: fields}
       if (this.InsertData({ Fields: total_fields }) <= 0) {
-        console.log(
+        GetLogger("app").log(
+          "info",
           "insert row[" + ret + "]" + total_fields.toString() + " failed"
         );
       }
@@ -141,7 +173,7 @@ class Bill extends DbCore {
       return 0;
     }
   }
-  public async LoadFromBill(billname: string, rowidxs?: number[]) {
+  public LoadFromBill(billname: string, rowidxs?: number[]) {
     const bill = Bill.GetBill(billname);
     if (!bill) return -1;
     try {
@@ -181,35 +213,41 @@ class Bill extends DbCore {
       });
       return this.m_RowDataList.length - ret;
     } catch (e) {
-      console.error("Error occurred while reading the directory!", e);
+      GetLogger("sys").error("Error occurred while reading the directory!", e);
       return 0;
     }
   }
   public async LoadFromFile(filename: string, sheetid: number | string) {
     const workbook = new Excel.Workbook();
     try {
+      let ret = 0;
       if (filename.match(/\S*.csv$/)) {
-        const ret = workbook.csv.readFile(filename).then((ws) => {
-          return this.LoadFromWS(ws);
+        await workbook.csv.readFile(filename).then((ws) => {
+          //console.log("++++++++++++++++++++++++");
+          ret = this.LoadFromWS(ws);
         });
-        return ret;
+        GetLogger("app").log("info", `${ret} rows in ${filename}`);
       } else if (filename.match(/\S*.xlsx$/)) {
-        const ret = workbook.xlsx.readFile(filename).then((wk) => {
+        await workbook.xlsx.readFile(filename).then((wk) => {
+          //console.log("--------------------------");
           const ws = wk.getWorksheet(sheetid);
           if (ws === undefined) {
-            console.log(`can not find sheet[${sheetid}] in ${filename}`);
-            return 0;
+            GetLogger("app").log(
+              "info",
+              `can not find sheet[${sheetid}] in ${filename}`
+            );
+          } else {
+            ret = this.LoadFromWS(ws);
+            //console.log(`${ret} rows in ${filename}`);
           }
-          return this.LoadFromWS(ws);
         });
-        return ret;
       } else {
-        console.error(`unsurpport type of file[${filename}]`);
-        return 0;
+        GetLogger("app").error(`unsurpport type of file[${filename}]`);
       }
+      return Promise.resolve(ret);
     } catch (e) {
-      console.error(e);
-      return 0;
+      GetLogger("sys").error(e);
+      return Promise.reject(e);
     }
   }
   /**
@@ -258,12 +296,15 @@ class Bill extends DbCore {
         });
         //console.log("datasize is:"+data.Fields.length)
         if (this.InsertData({ Fields: fields }) <= 0) {
-          console.log("insert row[" + i + "]" + fields.toString() + " failed");
+          GetLogger("app").log(
+            "info",
+            "insert row[" + i + "]" + fields.toString() + " failed"
+          );
         }
       }
       return this.m_RowDataList.length - ret;
     } catch (e) {
-      console.error(e);
+      GetLogger("sys").error(e);
       return 0;
     }
   }

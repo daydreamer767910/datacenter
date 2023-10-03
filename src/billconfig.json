@@ -11,14 +11,17 @@
         {"header": "团长备注", "key": "comment",    "width": 15 , "datatype": "string"},
         {"header": "支付时间", "key": "date",  "width": 15 , "datatype": "string"},
         {"header": "商品",  "key": "product", "width": 15 , "datatype": "string"},
-        {"header": "商品编码", "key": "productid", "width": 15 , "datatype": "string"},
+        {"header": "商品ID", "key": "productid", "width": 15 , "datatype": "string"},
+        {"header": "商品编码", "key": "productcode", "width": 15 , "datatype": "string"},
         {"header": "规格", "key": "specs", "width": 15 , "datatype": "string"},
         {"header": "分类", "key": "category", "width": 15 , "datatype": "string"},
         {"header": "数量", "key": "num", "width": 15 , "datatype": "number"},
         {"header": "商品成本价", "key": "cost", "width": 15 , "datatype": "number"},
         {"header": "运费", "key": "freight", "width": 15 , "datatype": "number"},
-        {"header": "订单金额", "key": "deposit", "width": 15 , "datatype": "number"},
+        {"header": "订单金额", "key": "price", "width": 15 , "datatype": "number"},
         {"header": "退款金额", "key": "refund", "width": 15 , "datatype": "number"},
+        {"header": "商品利润粗估", "key": "profit", "width": 15 , "datatype": "number"},
+        {"header": "订单状态", "key": "status", "width": 15 , "datatype": "string"},
         {"header": "团长", "key": "leader", "width": 15 , "datatype": "string"},
         {"header": "收货人", "key": "client", "width": 15 , "datatype": "string"},
         {"header": "联系电话", "key": "phone", "width": 15 , "datatype": "string"},
@@ -36,6 +39,7 @@
         {"datasrc":["团长备注"]},
         {"datasrc":["支付时间"]},
         {"datasrc":["商品","商品名称"],"default":"???","todo":"(a)=>(a[0]===undefined)?a[1]:a[0]"},
+        {"datasrc":["商品id"]},
         {"datasrc":["商品编码"],"todo":"(a)=>a"},
         {"datasrc":["规格"]},
         {"datasrc":["分类"]},
@@ -44,6 +48,8 @@
         {"datasrc":["运费"]},
         {"datasrc":["订单金额"],"default":0,"todo":"(a)=>Number(a)"},
         {"datasrc":["退款金额"],"default":0,"todo":"(a)=>Number(a)"},
+        {"datasrc":["商品利润粗估"],"default":0,"todo":"(a)=>Number(a)"},
+        {"datasrc":["订单状态"]},
         {"datasrc":["团长"]},
         {"datasrc":["收货人"]},
         {"datasrc":["联系电话"]},
@@ -54,5 +60,5 @@
         {"datasrc":["物流公司"]},
         {"datasrc":["物流单号"]}
     ],
-    "sum":["num","商品成本价", "运费","订单金额","退款金额"]
+    "sum":["num","商品成本价", "运费","订单金额","退款金额","商品利润粗估"]
 }

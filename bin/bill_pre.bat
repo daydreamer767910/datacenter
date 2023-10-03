@@ -11,11 +11,4 @@ if not exist %bak% (
 	mkdir %bak%
 ) 
 move %src%*.xlsx %bak%
-echo the bills are transfered to %bak%!!
-
-if exist %send% (
-	cli paidan %bak% %send% DB
-	echo job completly done!
-)
-pause
-
+echo the bills in %src% are transfered to %bak%!!

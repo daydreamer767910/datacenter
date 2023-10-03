@@ -1,161 +1,238 @@
-import { Bill } from "./billing";
+import * as LOG from "./logger";
+import dotenv from "dotenv";
+import { AppDataSource } from "./data-source";
+import { CommSrv } from "./commsrv";
+//import { Mutex, Semaphore } from "./mutex";
+import { Semaphore } from "./mutex";
+//import ffi, { RTLD_GLOBAL } from "ffi-napi";
+import { MessageQueue } from "./memmsgq";
+import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
+//import { CommClnt } from "./commclnt";
 import * as path from "path";
-import * as fs from "fs";
-import * as BillFs from "./billfs";
 
-const billconfig = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "billconfig.json"), "utf-8")
-);
-const dailybill = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "dailybill.json"), "utf-8")
-);
-const dailybill_A = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "dailybill_A.json"), "utf-8")
-);
-const dailybill_F = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "dailybill_F.json"), "utf-8")
-);
-const dailybill_H = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "dailybill_H.json"), "utf-8")
-);
-const dailybill_back = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "dailybill_back.json"), "utf-8")
-);
-const client_json = JSON.parse(
-  fs.readFileSync(path.resolve(__dirname, "client.json"), "utf-8")
-);
-
-const format_date = () => {
-  const date = new Date();
-  const m = date.getMonth() + 1;
-  const d = date.getDate();
-  let fm: string = m < 10 ? "0" + m.toString() : m.toString();
-  fm += d < 10 ? "0" + d : d;
-  return fm;
+const Logger = {
+  log: (level: string, message: string, ...meta: any[]) =>
+    LOG.GetLogger("app")?.log(level, message, ...meta),
 };
-async function load_allbills(srcDir: string) {
+const Commsrv = new CommSrv();
+
+function initialize() {
+  return new Promise<void>((resolve, reject) => {
+    const result = dotenv.config({ path: "E:\\ktt\\bin\\.env" });
+    if (result.error) {
+      reject(result.error);
+    }
+    //console.log(result.parsed);
+    const LogServices = ["app", "comm", "sys", "db"];
+    LOG.Register(LogServices);
+    const port = Number(process.env.COMM_PORT);
+    Commsrv.initialize(port);
+    AppDataSource.initialize().then((datasource) => {
+      if (datasource.isInitialized) {
+        Logger.log(
+          "debug",
+          "Database connected. Here you can setup and run any other framework."
+        );
+        resolve();
+      } else {
+        reject("Database initialize failure");
+      }
+    });
+  });
+}
+
+enum CommandType {
+  p = "paidan",
+  h = "huidan",
+  c = "client",
+  f = "filter",
+  k = "prebill",
+  t = "test",
+  l = "loop",
+}
+
+async function OnCommand(cmd: CommandType, ...argv: string[]) {
+  const options = argv[2];
+
+  Logger.log("debug", `command:${cmd},argvs[${argv}]`);
+  switch (cmd) {
+    case CommandType.k:
+      if (argv.length < 1) {
+        Logger.log("error", "bad command", argv);
+        break;
+      }
+      return mk_kttdir_daily(argv[0]);
+    case CommandType.p:
+      if (argv.length < 2) {
+        //use the default path to operate
+        mk_kttdir_daily(cmd).then(async () => {
+          return await paidan();
+        });
+        break;
+      }
+      return await paidan(
+        path.resolve(__dirname, argv[0]),
+        path.resolve(__dirname, argv[1]),
+        options === "DB"
+      );
+    case CommandType.h:
+      if (argv.length < 2) {
+        //use the default path to operate
+        mk_kttdir_daily(cmd).then(async () => {
+          return await filterBills();
+        });
+        break;
+      }
+      return await filterBills(
+        path.resolve(__dirname, argv[0]),
+        path.resolve(__dirname, argv[1]),
+        false
+      );
+    case CommandType.c:
+      if (argv.length < 2) {
+        Logger.log("error", "bad command", argv);
+        break;
+      }
+      return await client(
+        path.resolve(__dirname, argv[0]),
+        path.resolve(__dirname, argv[1])
+      );
+    case CommandType.f:
+      if (argv.length < 2) {
+        Logger.log("error", "bad command", argv);
+        break;
+      }
+      return await filterBills(
+        path.resolve(__dirname, argv[0]),
+        path.resolve(__dirname, argv[1]),
+        true,
+        options
+      );
+    case CommandType.t:
+      dotest();
+      break;
+    case CommandType.l:
+      if (argv.length < 1) {
+        Logger.log("error", "bad command", argv);
+        break;
+      }
+      loop(Number(argv[0]));
+      break;
+    default:
+      Logger.log("error", `unsupport command:${cmd}`);
+      break;
+  }
+}
+
+// 定义一个消息队列，用于存储消息
+interface _IMEM_MSG {
+  id: number;
+  //src: number;
+  //dest: number;
+  cmd: string;
+}
+interface cmdMsg extends _IMEM_MSG {
+  opt: string[];
+}
+class Msg implements cmdMsg {
+  //src: number;
+  //dest: number;
+  id: number;
+  cmd: string;
+  opt: string[];
+}
+interface MsgOptions {
+  msgType: string;
+  metadata?: any;
+  opt: string[];
+}
+const messageQueue = new MessageQueue<Msg>(50);
+let msgID = 0;
+// 向消息队列添加消息
+async function postMessage(postMsg: MsgOptions) {
+  const msg = [
+    { id: msgID++, cmd: postMsg.msgType, opt: postMsg.opt },
+    //{ id: msgID++, cmd: postMsg.msgType, opt: postMsg.opt },
+  ];
+  const ret = await messageQueue.sendMsg(msg);
+  Logger.log("debug", "Send message", msg);
+  return ret;
+}
+
+async function run() {
+  // 启动消息处理循环
+  for (;;) {
+    const recvMsg: Msg[] = new Array<Msg>(5);
+    // 启动等待信号的异步操作
+    const v = await messageQueue.recvMsg(recvMsg, 3600000);
+    //Logger.log("debug", "recv %d msg", v);
+
+    for (let i = 0; i < v; i++) {
+      const message = recvMsg[i]; // 获取队列中的第一个消息
+      Logger.log("debug", "Processing message", message);
+      OnCommand(message.cmd as CommandType, ...message.opt);
+    }
+
+    //console.log("runing ...");
+  }
+}
+const sem = new Semaphore(0);
+async function loop(counter: number) {
+  while (counter > 0) {
+    sem.release();
+    counter--;
+  }
+}
+async function dotest() {
+  // mutex test
+  // 创建互斥锁
+
+  async function criticalSection(num: number) {
+    //Logger.log("info", "----------------criticalSection is called %d", num);
+    await sem
+      .acquire(10000)
+      .then(async () => {
+        // 临界区代码
+        Logger.log("info", "Entering critical section %d", num);
+        await new Promise((resolve) => setTimeout(resolve, 2000)); // 模拟耗时操作
+        Logger.log("info", "Exiting critical section %d", num);
+      })
+      .catch((reason) => {
+        console.log(reason);
+      });
+
+    //Logger.log("info", "=================criticalSection end %d", num);
+  }
+
+  // 测试互斥锁
+  //let profiler = Logger().startTimer();
+  //sem.release();
+  criticalSection(1);
+  //sem.release();
+  //Logger.log("info", "sem release");
+  criticalSection(2);
+  criticalSection(3);
+
+  //dll loader test
+  // 定义共享库的路径和函数签名
+  /*const fileName = path.resolve(__dirname, "../lib/mylib.dll");
+  console.log(`starting to load : ${fileName}`);
   try {
-    const bill = new Bill(billconfig);
-    //bill.SetHeaderList(billconfig.headers)
-    const files = fs.readdirSync(srcDir);
-    let totalrows = 0;
-    for (const file of files) {
-      if (file.match(/\S*.xlsx|\S*.csv\b/)) {
-        console.log(`start to load ${file}`);
-        await bill
-          .LoadFromFile(path.resolve(srcDir, file), billconfig.input.sheetid)
-          .then((num) => {
-            totalrows += num;
-            console.log(`${num} rows are loaded`);
-          });
-      }
-    }
-    console.log(`total ${totalrows} rows are loaded`);
-    return bill;
-  } catch (error) {
-    console.error("Error occurred while reading the directory!", error);
-    return Promise.reject(error);
-  }
-}
-async function dispatch_bills(
-  dstDir: string,
-  billname: string,
-  dataidx: number[]
-) {
-  //console.log(`start to generate bill[${billname}].....`)
-  let bill: Bill;
-  switch (billname.at(0)) {
-    case "A": //for 1688
-      bill = new Bill(dailybill_A);
-      break;
-    case "F": //for flower city
-      bill = new Bill(dailybill_F);
-      break;
-    case "H": //for huinong
-      bill = new Bill(dailybill_H);
-      break;
-    case "C": //for caigou
-    default: //all the wechat providers
-      bill = new Bill(dailybill);
-      break;
-  }
+    const conn = ffi.DynamicLibrary(fileName, RTLD_GLOBAL);
+    console.log(
+      "load dll with add[%s] method ok",
+      conn.get("add").hexAddress()
+    );
 
-  bill.LoadFromBill(billconfig.name, dataidx).then((n) => {
-    console.log(`[${billname}] ${n} rows dispatched`);
-    //const date = new Date();
-    const filename = `${billname}-${format_date()}-(${bill.Sum(
-      "num"
-    )})露露甄选(18665316526).xlsx`;
-    bill.SaveToFile(path.resolve(dstDir, filename));
-  });
-}
-function paidan(srcDir: string, dstDir: string) {
-  load_allbills(srcDir).then((bill) => {
-    bill.SortData(billconfig.primarykey);
-    //bill.ShowDataList()
-    //const date = new Date();
-    const filename = `${billconfig.name}-${format_date()}-(${bill.Sum(
-      "num"
-    )}).xlsx`;
-    bill.SaveToFile(path.resolve(dstDir, filename));
-    const billlist = bill.BuildPrimaryKV(billconfig.primarykey);
-    billlist.forEach((v: number[], k) => {
-      dispatch_bills(dstDir, k.toString(), v);
+    const mylib = ffi.Library(fileName, {
+      add: ["int", ["int", "int"]],
     });
-  });
+
+    // 调用共享库中的函数
+    const result = mylib.add(5, 10);
+    console.log("%s(5,10) Result:", Object.keys(mylib), result);
+  } catch (err) {
+    console.log("Not loaded: " + fileName + err);
+  }*/
 }
-
-function huidan(srcDir: string, dstDir: string) {
-  console.log(`executing huidan ${srcDir}...${dstDir}`);
-  filterBills(srcDir, dstDir, "回单|");
-}
-
-function client(srcDir: string, dstDir: string) {
-  load_allbills(srcDir).then((bill) => {
-    bill.SortData("phone");
-    const clientlist = bill.BuildPrimaryKV("phone");
-
-    const clientbill = new Bill(client_json);
-    clientlist.forEach((v: number[]) => {
-      clientbill.LoadClientFromBill(billconfig.name, v);
-    });
-    clientbill.SortData(client_json.primarykey);
-    const filename = `${client_json.name}.xlsx`;
-    clientbill.SaveToFile(path.resolve(dstDir, filename));
-  });
-}
-
-function filterBills(srcDir: string, dstDir: string, filterName?: string) {
-  const files: string[] = [];
-  BillFs.fileSearch(srcDir, files, filterName).then(async () => {
-    console.log(files);
-    try {
-      const bill = new Bill(dailybill_back);
-      //bill.SetHeaderList(billconfig.headers)
-      let totalrows = 0;
-      for (const file of files) {
-        for (let i = 0; i < 3; i++) {
-          const num = await bill.LoadFromFile(file, i + 1);
-          if (num === 0) continue;
-          totalrows += num;
-          break;
-        }
-      }
-      console.log(`total ${totalrows} rows are loaded`);
-      bill.SortData(dailybill_back.primarykey);
-      //bill.ShowDataList()
-      //const date = new Date();
-      let filename = `${filterName}-${format_date()}-(${bill.Sum("num")}).xlsx`;
-      //filename = filename.replace(/\*|\\|\/|\||\>|\<|\:|\?/gi,'');
-      filename = filename.replace(/\*|\\|\/|\||\?/gi, "");
-      filename = path.resolve(dstDir, filename);
-      //console.log(`${filename}`)
-      bill.SaveToFile(filename);
-      console.log(`${filename} is generated`);
-    } catch (error) {
-      console.error("Error occurred while reading the directory!", error);
-    }
-  });
-}
-
-export { paidan, huidan, client, filterBills };
+export { initialize, run, postMessage };
