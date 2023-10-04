@@ -1,1 +1,3 @@
 # datacenter
+This is a demo to collect the ktt billing data, saving to the files system and database of mysql. The demo is sort of a coding guild for junior typescript programmer, showing some examples about how to operate excel files, connect and use mysql, semaphore/mutex and message queue, socket programming, etc.
+Before running the cli/ktt, you need to configure the .env files and the direction folder to collecting the billing data, as well as installing and create the database named 'kttdatabase'. If you need to run the 'test' command by cli, function the dynamic C/C++ library, you also need to install the accordingly tools including gcc, python...

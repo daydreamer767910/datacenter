@@ -42,7 +42,8 @@ class CommClnt {
 const comm_clnt_command = (cmds: string[]) => {
   Logger.log("debug", `send[${cmds.filter((v) => v !== "send")}]`);
   const commclnt = new CommClnt();
-  commclnt.connect("127.0.0.1", 7899);
+  const port = Number(process.env.COMM_PORT);
+  commclnt.connect("127.0.0.1", port);
   commclnt.sendCmd(cmds.filter((v) => v !== "send").join(" "));
   commclnt.disconnect();
 };

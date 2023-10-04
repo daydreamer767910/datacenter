@@ -4,10 +4,9 @@ import { AppDataSource } from "./data-source";
 import { CommSrv } from "./commsrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
-//import ffi, { RTLD_GLOBAL } from "ffi-napi";
+import ffi, { RTLD_GLOBAL } from "ffi-napi";
 import { MessageQueue } from "./memmsgq";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
-//import { CommClnt } from "./commclnt";
 import * as path from "path";
 
 const Logger = {
@@ -18,7 +17,9 @@ const Commsrv = new CommSrv();
 
 function initialize() {
   return new Promise<void>((resolve, reject) => {
-    const result = dotenv.config({ path: "E:\\ktt\\bin\\.env" });
+    const envPath = path.resolve(__dirname, "../.env");
+    // console.log(envPath);
+    const result = dotenv.config({ path: envPath });
     if (result.error) {
       reject(result.error);
     }
@@ -215,7 +216,7 @@ async function dotest() {
 
   //dll loader test
   // 定义共享库的路径和函数签名
-  /*const fileName = path.resolve(__dirname, "../lib/mylib.dll");
+  const fileName = path.resolve(__dirname, "../lib/mylib.dll");
   console.log(`starting to load : ${fileName}`);
   try {
     const conn = ffi.DynamicLibrary(fileName, RTLD_GLOBAL);
@@ -233,6 +234,6 @@ async function dotest() {
     console.log("%s(5,10) Result:", Object.keys(mylib), result);
   } catch (err) {
     console.log("Not loaded: " + fileName + err);
-  }*/
+  }
 }
 export { initialize, run, postMessage };
