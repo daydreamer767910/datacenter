@@ -39,9 +39,9 @@
     "ts-node": "^10.9.1"
   },
   "scripts": {
-    "build": "tsc && cp src/*.json dist/",
+    "build": "tsc && mingw32-make && cp src/*.json dist/",
     "rebuild": "npm-run-all clean lint prettier build",
-    "clean": "rm -fr dist/*",
+    "clean": "rm -fr dist/* && mingw32-make clean",
     "lint": "eslint --fix src --ext .ts --max-warnings=10",
     "prettier": "prettier --write \"src/**/*.ts\"",
     "dev:start": "npm-run-all lint prettier build start",
