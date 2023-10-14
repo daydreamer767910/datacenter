@@ -103,4 +103,11 @@ class MessageQueue<T> {
   }
 }
 
+export interface IMemoryMessage {
+  id: number;
+  from: object;
+  to: object;
+  metadata?: any[];
+}
+
 export { MessageQueue };

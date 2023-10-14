@@ -5,7 +5,7 @@ import { CommSrv } from "./commsrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
 import ffi, { RTLD_GLOBAL } from "ffi-napi";
-import { MessageQueue } from "./memmsgq";
+import { IMemoryMessage, MessageQueue } from "./memmsgq";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
 import * as path from "path";
 
@@ -126,25 +126,20 @@ async function OnCommand(cmd: CommandType, ...argv: string[]) {
 }
 
 // 定义一个消息队列，用于存储消息
-interface _IMEM_MSG {
-  id: number;
-  //src: number;
-  //dest: number;
+interface cmdMsg extends IMemoryMessage {
   cmd: string;
-}
-interface cmdMsg extends _IMEM_MSG {
   opt: string[];
 }
 class Msg implements cmdMsg {
-  //src: number;
-  //dest: number;
   id: number;
+  from: object;
+  to: object;
   cmd: string;
   opt: string[];
 }
 interface MsgOptions {
   msgType: string;
-  metadata?: any;
+  metadata?: any[];
   opt: string[];
 }
 const messageQueue = new MessageQueue<Msg>(50);
@@ -152,7 +147,14 @@ let msgID = 0;
 // 向消息队列添加消息
 async function postMessage(postMsg: MsgOptions) {
   const msg = [
-    { id: msgID++, cmd: postMsg.msgType, opt: postMsg.opt },
+    {
+      id: msgID++,
+      from: this,
+      to: this,
+      cmd: postMsg.msgType,
+      opt: postMsg.opt,
+      metadata: postMsg.metadata,
+    },
     //{ id: msgID++, cmd: postMsg.msgType, opt: postMsg.opt },
   ];
   const ret = await messageQueue.sendMsg(msg);

@@ -49,6 +49,8 @@ function cli_startup() {
         break;
       case "huidan":
       case "paidan":
+      case "filter":
+      case "client":
       case "test":
       case "loop":
         APP.postMessage({ msgType: cmds.shift(), opt: cmds });
