@@ -4,7 +4,7 @@ import { AppDataSource } from "./data-source";
 import { CommSrv } from "./commsrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
-//import ffi, { RTLD_GLOBAL } from "ffi-napi";
+import ffi, { RTLD_GLOBAL } from "ffi-napi";
 import { IMemoryMessage, MessageQueue } from "./memmsgq";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
 import * as path from "path";
@@ -215,13 +215,13 @@ async function dotest() {
   //Logger.log("info", "sem release");
   criticalSection(2);
   criticalSection(3);
-/*
+
   //dll loader test
   // 定义共享库的路径和函数签名
   const fileName = path.resolve(__dirname, "../lib/libmylib.so");
   console.log(`starting to load : ${fileName}`);
   try {
-    const conn = ffi.DynamicLibrary(fileName, RTLD_GLOBAL);
+    const conn = ffi.DynamicLibrary(fileName, ffi.DynamicLibrary.FLAGS.RTLD_LAZY);
     console.log(
       "load dll with add[%s] method ok",
       conn.get("add").hexAddress()
@@ -237,6 +237,6 @@ async function dotest() {
   } catch (err) {
     console.log("Not loaded: " + fileName + err);
   }
-*/
+
 }
 export { initialize, run, postMessage };

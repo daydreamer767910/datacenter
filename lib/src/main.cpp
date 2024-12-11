@@ -1,9 +1,9 @@
 #include <iostream>
 
-void printMessage() {
+extern "C" void printMessage() {
     std::cout << "Hello from C++ Library!" << std::endl;
 }
 
-int add(int a, int b) {
+extern "C" int add(int a, int b) {
     return a + b;
 }
