@@ -2,9 +2,10 @@ version: '3.8'
 
 services:
   app:
-    build:
-      context: .
-      dockerfile: Dockerfile
+    image: daydreamer767910/ktt:latest
+    #build:
+    #  context: .
+    #  dockerfile: Dockerfile
     ports:
       - "7899:7899"
     env_file:
