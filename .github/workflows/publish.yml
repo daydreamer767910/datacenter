@@ -16,5 +16,4 @@ jobs:
       - name: publish
         run: npm publish --access public
         env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_AUTH_TOKEN}}
-          OTP: ${{ secrets.NPM_2FA_OTP }}
+          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
