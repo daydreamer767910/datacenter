@@ -1,5 +1,5 @@
 {
-    "loger_home" : "E:/ktt/",
+    "loger_home" : "",
     "services" : [
         {"name":"sys","port":{"error": "logs/sys/error.log","all": "logs/sys/all.log"}},
         {"name":"app","port":{"error": "logs/app/error.log","all": "logs/app/all.log"}},

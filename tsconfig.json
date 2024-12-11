@@ -18,11 +18,11 @@
       }
   },
   "exclude": [
-      "node_modules/",
-      "dist/",
-      "bin"
+    "node_modules/",
+    "dist/"
   ],
   "include": [
-      "src/**/*"
+    "src/**/*",
+    "bin/**/*"
   ]
 }

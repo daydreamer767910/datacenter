@@ -1,0 +1,18 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "7899:7899"
+    env_file:
+      - .env
+    environment:
+      - TZ=America/Los_Angeles
+    volumes:
+      - E:/ktt/dailybill:/app/dailybill
+      - E:/ktt/express:/app/express
+      - E:/ktt/logs:/app/logs
+    

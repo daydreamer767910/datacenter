@@ -218,21 +218,25 @@ class Bill extends DbCore {
     }
   }
 
-  public async decryptExcelFile(filePath: string, password: string) {
+  public async decryptFile(filePath: string, password: string) {
     const XlsxPopulate = require("xlsx-populate");
     console.log("starting decryt file [%s]", filePath);
     try {
       const workbook = await XlsxPopulate.fromFileAsync(filePath, { password });
       // 现在可以访问解密后的工作簿和工作表
       // 例如：const sheet = workbook.sheet(0);
-      console.log("Excel 文件解密成功");
+      console.log("decrypt file %s successfully", filePath);
       // 保存工作簿到新文件
       await workbook.toFileAsync(filePath);
     } catch (error) {
-      console.error("Excel 文件解密失败:", error.message);
+      console.error("decrypt file %s fail:", filePath, error.message);
     }
   }
-  public async LoadFromFile(filename: string, sheetid: number | string) {
+  public async LoadFromFile(
+    filename: string,
+    sheetid: number | string,
+    passwd?: string
+  ) {
     const workbook = new Excel.Workbook();
     try {
       let ret = 0;
@@ -243,9 +247,9 @@ class Bill extends DbCore {
         });
         GetLogger("app").log("info", `${ret} rows in ${filename}`);
       } else if (filename.match(/\S*.xlsx$/)) {
-        const excelPassword = "7679";
-        await this.decryptExcelFile(filename, excelPassword);
-
+        if (passwd != undefined) {
+          await this.decryptFile(filename, passwd);
+        }
         await workbook.xlsx.readFile(filename).then((wk) => {
           //console.log("--------------------------");
           const ws = wk.getWorksheet(sheetid);

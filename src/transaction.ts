@@ -62,7 +62,8 @@ async function load_allbills(
       await bill
         .LoadFromFile(
           path.resolve(srcDir, fileinfo.path),
-          BillFs.billconfig.input.sheetid
+          BillFs.billconfig.input.sheetid,
+          "7679"
         )
         .then((num) => {
           totalrows += num;
@@ -116,8 +117,8 @@ async function dispatch_bills(
 async function paidan(srcDir?: string, dstDir?: string, toDB = true) {
   dstDir = dstDir
     ? dstDir
-    : process.env.KTT_PATH + "\\dailybill\\" + format_date();
-  srcDir = srcDir ? srcDir : dstDir + "\\bak";
+    : process.env.KTT_PATH + "/dailybill/" + format_date();
+  srcDir = srcDir ? srcDir : dstDir + "/bak";
 
   const bill = await load_allbills(srcDir, false);
   bill.SortData(BillFs.billconfig.primarykey);
@@ -179,10 +180,10 @@ async function filterBills(
 ) {
   dstDir = dstDir
     ? dstDir
-    : process.env.KTT_PATH + "\\dailybill\\" + format_date() + "\\bak";
+    : process.env.KTT_PATH + "/dailybill/" + format_date() + "/bak";
   srcDir = srcDir
     ? srcDir
-    : process.env.KTT_PATH + "\\express\\" + format_date();
+    : process.env.KTT_PATH + "/express/" + format_date();
   const fileinfos = await BillFs.fileSearch(srcDir, searchSubDir, filterName);
   //console.log(fileinfos);
   const bill = new Bill(BillFs.dailybill_back);

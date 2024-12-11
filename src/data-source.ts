@@ -6,7 +6,7 @@ import { Billing } from "./entity/KttBilling";
 export const AppDataSource = new DataSource({
   type: "mysql",
   charset: "utf8mb4",
-  host: "localhost",
+  host: process.env.DB_HOST || 'host.docker.internal',
   port: 3306,
   username: "root",
   password: "12345678",
