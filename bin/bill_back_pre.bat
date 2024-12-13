@@ -20,7 +20,7 @@ fi
 # 如果源目录有文件，则移动文件到目标目录
 if [ "$(ls -A $src 2>/dev/null)" ]; then
     echo "Moving files from $src to $send..."
-    mv "$src"* "$send"
+    mv "$src"*.* "$send"
     echo "The expresses are transferred to $send!"
 fi
 

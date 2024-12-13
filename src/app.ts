@@ -2,9 +2,10 @@ import * as LOG from "./logger";
 import dotenv from "dotenv";
 import { AppDataSource } from "./data-source";
 import { CommSrv } from "./commsrv";
+import { KttWebSrv } from "./websrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
-import ffi, { RTLD_GLOBAL } from "ffi-napi";
+import ffi from "ffi-napi";
 import { IMemoryMessage, MessageQueue } from "./memmsgq";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
 import * as path from "path";
@@ -14,6 +15,8 @@ const Logger = {
     LOG.GetLogger("app")?.log(level, message, ...meta),
 };
 const Commsrv = new CommSrv();
+const Websrv = new KttWebSrv(Number(process.env.WEB_PORT));
+
 
 function initialize() {
   return new Promise<void>((resolve, reject) => {
@@ -26,8 +29,9 @@ function initialize() {
     //console.log(result.parsed);
     const LogServices = ["app", "comm", "sys", "db"];
     LOG.Register(LogServices);
-    const port = Number(process.env.COMM_PORT);
-    Commsrv.initialize(port);
+
+    Commsrv.initialize(Number(process.env.COMM_PORT));
+    Websrv.initialize();
     AppDataSource.initialize().then((datasource) => {
       if (datasource.isInitialized) {
         Logger.log(
