@@ -23,8 +23,8 @@ class KttWebSrv {
 
     public initialize(): void {
         // 读取证书和私钥
-        const privateKey = fs.readFileSync('./bin/private.key', 'utf8');
-        const certificate = fs.readFileSync('./bin/cert.pem', 'utf8');
+        const privateKey = fs.readFileSync('./etc/private.key', 'utf8');
+        const certificate = fs.readFileSync('./etc/cert.pem', 'utf8');
         // 中间件：解析 JSON 请求体
         this.app.use(express.json());
 
