@@ -2,6 +2,7 @@ import "reflect-metadata";
 import { DataSource } from "typeorm";
 import { Client } from "./entity/Client";
 import { Billing } from "./entity/KttBilling";
+import { Key } from "./entity/Key"
 
 export const AppDataSource = new DataSource({
   type: "mysql",
@@ -13,7 +14,7 @@ export const AppDataSource = new DataSource({
   database: "kttdatabase",
   synchronize: true,
   logging: false,
-  entities: [Client, Billing],
+  entities: [Client, Billing, Key],
   migrations: [],
   subscribers: [],
 });
