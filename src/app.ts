@@ -1,8 +1,8 @@
 import * as LOG from "./logger";
 import dotenv from "dotenv";
 import { AppDataSource } from "./data-source";
-import { CommSrv } from "./commsrv";
-import { KttWebSrv } from "./websrv";
+import { Commsrv } from "./commsrv";
+import { Websrv } from "./websrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
 import ffi from "ffi-napi";
@@ -14,9 +14,6 @@ const Logger = {
   log: (level: string, message: string, ...meta: any[]) =>
     LOG.GetLogger("app")?.log(level, message, ...meta),
 };
-const Commsrv = new CommSrv();
-const Websrv = new KttWebSrv(Number(process.env.WEB_PORT));
-
 
 function initialize() {
   return new Promise<void>((resolve, reject) => {
@@ -31,7 +28,7 @@ function initialize() {
     LOG.Register(LogServices);
 
     Commsrv.initialize(Number(process.env.COMM_PORT));
-    Websrv.initialize();
+    Websrv.initialize(Number(process.env.WEB_PORT));
     AppDataSource.initialize().then((datasource) => {
       if (datasource.isInitialized) {
         Logger.log(

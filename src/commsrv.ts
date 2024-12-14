@@ -47,4 +47,4 @@ class CommSrv {
   }
 }
 
-export { CommSrv };
+export const Commsrv = new CommSrv();

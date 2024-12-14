@@ -16,15 +16,15 @@ class KttWebSrv {
     private port: number;
     private server: https.Server;
 
-    constructor(port: number) {
+    constructor() {
         this.app = express();
-        this.port = port;
     }
 
-    public initialize(): void {
+    public initialize(port: number): void {
         // 读取证书和私钥
         const privateKey = fs.readFileSync('./etc/private.key', 'utf8');
         const certificate = fs.readFileSync('./etc/cert.pem', 'utf8');
+        this.port = port;
         // 中间件：解析 JSON 请求体
         this.app.use(express.json());
 
@@ -120,6 +120,6 @@ class KttWebSrv {
         });
     }
 }
+export const Websrv = new KttWebSrv();
 
-export { KttWebSrv };
 
