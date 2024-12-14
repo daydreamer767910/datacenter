@@ -51,7 +51,7 @@ export class KeyMng {
     
     // 检查是否已经存在同名的 key
     let keyEntry = await this.keyRepo.findOne({ where: { name } });
-
+    
     if (keyEntry) {
         // 如果存在，更新 key
         keyEntry.key = encryptedKey;
