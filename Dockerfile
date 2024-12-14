@@ -40,7 +40,7 @@ RUN npm install
 # 复制 TypeScript 源代码和其他配置文件
 COPY src ./src
 COPY bin ./bin
-RUN dos2unix ./bin/*.bat
+RUN dos2unix ./bin/*.sh
 COPY tsconfig.json ./
 COPY .eslintrc.json ./
 COPY .env ./
