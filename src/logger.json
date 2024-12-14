@@ -4,6 +4,7 @@
         {"name":"sys","port":{"error": "logs/sys/error.log","all": "logs/sys/all.log"}},
         {"name":"app","port":{"error": "logs/app/error.log","all": "logs/app/all.log"}},
         {"name":"comm","port":{"error": "logs/comm/error.log","all": "logs/comm/all.log"}},
+        {"name":"web","port":{"error": "logs/web/error.log","all": "logs/web/all.log"}},
         {"name":"db","port":{"error": "logs/db/error.log","all": "logs/db/all.log"}}
     ]
 }

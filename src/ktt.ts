@@ -10,7 +10,7 @@ import { Websrv } from "./websrv";
 const envPath = path.resolve(__dirname, "../.env");
 const result = dotenv.config({ path: envPath });
 if (result.parsed) {
-  const LogServices = ["app", "comm", "sys", "db"];
+  const LogServices = ["app", "comm", "web", "sys", "db"];
   Register(LogServices);
   AppDataSource.initialize().then((datasource) => {
     if (datasource.isInitialized) {

@@ -28,6 +28,7 @@ class KttApp extends AppBase<CmdMsg> {
 	}
 	initialize() {
 		super.initialize(); // 调用基类的初始化逻辑
+    this.log("debug",'KTT App initialized and start running');
 	}
   protected async onMessage(message: CmdMsg): Promise<void> {
     const { cmd, opt } = message;
