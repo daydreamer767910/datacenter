@@ -14,15 +14,13 @@ import { Websrv } from "./websrv";
 const envPath = path.resolve(__dirname, "../.env");
 const result = dotenv.config({ path: envPath });
 if (result.parsed) {
-  const LogServices = ["app", "comm", "sys", "db"];
+  const LogServices = ["app", "comm","web", "sys", "db"];
   Register(LogServices);
   AppDataSource.initialize().then((datasource) => {
       if (datasource.isInitialized) {
         console.log(
           "Database connected. Here you can setup and run any other framework."
         );
-        Commsrv.initialize(Number(process.env.COMM_PORT));
-        Websrv.initialize(Number(process.env.WEB_PORT));
         App.initialize();
         cli_startup();
       } else {
@@ -53,7 +51,7 @@ function cli_startup() {
     switch (cmds[0]) {
       case "help":
         console.log(
-          "Available commands: help,paidan,huidan,test, loop N,send ,exit"
+          "Available commands: help,paidan,huidan,test, loop N,send ,commsrv 7899,websrv 8080,exit"
         );
         break;
       case "exit":
@@ -65,6 +63,12 @@ function cli_startup() {
         console.log(packageInfo.version);
         console.log(packageInfo.description);
         break;
+      case "commsrv":
+        Commsrv.initialize(Number(cmds[1]||'7899'));
+        break
+      case "websrv":
+        Websrv.initialize(Number(cmds[1]||'8080'));
+        break
       case "send":
         comm_clnt_command(cmds);
         break;
