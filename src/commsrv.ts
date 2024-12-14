@@ -1,6 +1,6 @@
 import * as net from "net";
 //import * as path from "path";
-import { postMessage } from "./app";
+import { App } from "./app";
 import * as LOG from "./logger";
 
 const Logger = {
@@ -37,7 +37,7 @@ class CommSrv {
 
     if (params.length > 0) {
       const cmd = params[0].toLowerCase();
-      await postMessage({ msgType: params.shift(), opt: params }).then(
+      await App.postMessage({ cmd: params.shift(), opt: params }).then(
         //await OnCommand(cmd as CommandType, sourceDir, destDir, options).then(
         () => {
           Logger.log("info", "%s done", cmd);

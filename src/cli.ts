@@ -1,6 +1,7 @@
+#!/usr/bin/env node
 import dotenv from "dotenv";
 import * as path from "path";
-import * as App from "./app";
+import { App } from "./app";
 import { Register } from "./logger";
 import * as Readline from "readline";
 import { comm_clnt_command } from "./commclnt";
@@ -22,7 +23,8 @@ if (result.parsed) {
         );
         Commsrv.initialize(Number(process.env.COMM_PORT));
         Websrv.initialize(Number(process.env.WEB_PORT));
-        App.initialize()
+        App.initialize();
+        cli_startup();
       } else {
         console.error("Database initialize failure");
       }
@@ -72,7 +74,7 @@ function cli_startup() {
       case "client":
       case "test":
       case "loop":
-        App.postMessage({ msgType: cmds.shift(), opt: cmds });
+        App.postMessage({ cmd: cmds.shift(), opt: cmds });
         break;
       default:
         console.log(`Unknown command: ${command}`);

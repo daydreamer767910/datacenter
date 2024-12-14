@@ -50,7 +50,7 @@ RUN npm run rebuild
 
 # 添加执行权限
 RUN chmod +x dist/ktt.js
-
+RUN chmod +x dist/cli.js
 # Stage 3: Runtime Environment
 FROM node:18-slim AS runtime
 

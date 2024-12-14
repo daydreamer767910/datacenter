@@ -1,7 +1,7 @@
 #!/usr/bin/env node
 import dotenv from "dotenv";
 import * as path from "path";
-import * as App from "./app";
+import { App } from "./app";
 import { Register,GetLogger } from "./logger";
 import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";

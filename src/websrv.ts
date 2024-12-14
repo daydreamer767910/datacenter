@@ -1,7 +1,7 @@
 import express, { Request, Response, Express } from 'express';
 import https from 'https';
 import fs from 'fs';
-import { postMessage } from "./app";
+import { App } from "./app";
 import * as LOG from "./logger";
 import { OpenAIClient } from "./openaiclient";
 import { KeyMng } from "./keymng";
@@ -99,7 +99,7 @@ class KttWebSrv {
                 const params = action.toString().split(" ");
                 if (params.length > 0) {
                     const cmd = params[0].toLowerCase();
-                    await postMessage({ msgType: params.shift(), opt: params }).then(
+                    await App.postMessage({ cmd: params.shift(), opt: params }).then(
                     //await OnCommand(cmd as CommandType, sourceDir, destDir, options).then(
                     () => {
                         Logger.log("info", "%s done", cmd);
