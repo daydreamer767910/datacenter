@@ -2,8 +2,8 @@ name: Publish Docker Image
 
 on:
   push:
-    tags:
-      - '*'  # 当推送任何标签时触发工作流
+    #tags:
+    #  - '*'  # 当推送任何标签时触发工作流
 
 jobs:
   publish:
