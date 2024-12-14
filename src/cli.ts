@@ -1,11 +1,12 @@
 import dotenv from "dotenv";
 import * as path from "path";
-import * as APP from "./app";
+import * as App from "./app";
 import { Register } from "./logger";
 import * as Readline from "readline";
 import { comm_clnt_command } from "./commclnt";
 //import * as packageInfo from "../package.json";
 import * as fs from "fs";
+import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";
 import { Websrv } from "./websrv";
 
@@ -14,14 +15,18 @@ const result = dotenv.config({ path: envPath });
 if (result.parsed) {
   const LogServices = ["app", "comm", "sys", "db"];
   Register(LogServices);
-  Commsrv.initialize(Number(process.env.COMM_PORT));
-  Websrv.initialize(Number(process.env.WEB_PORT));
-  APP.initialize()
-    .then(() => {
-      APP.run();
-      cli_startup();
-    })
-    .catch((error) => console.log("error", error));
+  AppDataSource.initialize().then((datasource) => {
+      if (datasource.isInitialized) {
+        console.log(
+          "Database connected. Here you can setup and run any other framework."
+        );
+        Commsrv.initialize(Number(process.env.COMM_PORT));
+        Websrv.initialize(Number(process.env.WEB_PORT));
+        App.initialize()
+      } else {
+        console.error("Database initialize failure");
+      }
+    });
 } else {
   console.log(`config env ${envPath} failed: ${result.error}`);
 }
@@ -67,7 +72,7 @@ function cli_startup() {
       case "client":
       case "test":
       case "loop":
-        APP.postMessage({ msgType: cmds.shift(), opt: cmds });
+        App.postMessage({ msgType: cmds.shift(), opt: cmds });
         break;
       default:
         console.log(`Unknown command: ${command}`);

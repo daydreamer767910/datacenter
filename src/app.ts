@@ -13,19 +13,7 @@ const Logger = {
 };
 
 function initialize() {
-  return new Promise<void>((resolve, reject) => {
-    AppDataSource.initialize().then((datasource) => {
-      if (datasource.isInitialized) {
-        Logger.log(
-          "debug",
-          "Database connected. Here you can setup and run any other framework."
-        );
-        resolve();
-      } else {
-        reject("Database initialize failure");
-      }
-    });
-  });
+  run();
 }
 
 enum CommandType {
@@ -225,4 +213,4 @@ async function dotest() {
   }
 
 }
-export { initialize, run, postMessage };
+export { initialize, postMessage };
