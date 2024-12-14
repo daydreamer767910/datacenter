@@ -64,39 +64,32 @@ class KttWebSrv {
         });
         this.app.post('/api/talk', async (req: Request, res: Response) => {
             const { content } = req.body;
-        
             if (!content) {
                 return res.status(400).send({ error: 'Action not provided!' });
             }
-        
+            const messages: { role: 'system' | 'user' | 'assistant'; content: string }[] = [
+                { role: 'system', content: 'You are a helpful assistant.' },
+                { role: 'user', content: content },
+              ];
             try {
                 // 获取 API 密钥
                 const keyMng = new KeyMng();
                 const retrievedKey = await keyMng.getKeyByName("API Key");
-        
                 if (!retrievedKey || !retrievedKey.key) {
                     Logger.log("error", "API Key not found or invalid.");
                     return res.status(500).send({ error: 'API Key not found.' });
                 }
-        
                 // 初始化 OpenAI 客户端
-                const openAIClient = new OpenAIClient(retrievedKey.key); // 使用 API 密钥初始化客户端
-        
-                // 使用 Text Completion 获取响应
-                const textResponse = await openAIClient.getCompletion(content);
-        
+                const openAIClient = new OpenAIClient(retrievedKey.key);
+                const textResponse = await openAIClient.getChatCompletion(messages);
                 Logger.log('info', 'Text Completion Response:', textResponse);
-                
                 // 返回响应
                 return res.send({ message: textResponse });
             } catch (error) {
-                // 捕获并记录错误
                 Logger.log("debug", "Error in OpenAI API request:", error);
-        
-                // 返回具体的错误信息
                 return res.status(500).send({
                     error: 'Failed to talk with AI.',
-                    details: error.response?.data?.error?.message || error.message
+                    details: error.message || 'Unknown error'
                 });
             }
         });

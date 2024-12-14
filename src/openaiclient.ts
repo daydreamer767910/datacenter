@@ -1,76 +1,47 @@
-import axios from 'axios';
-import * as LOG from "./logger";
-
-const Logger = {
-  log: (level: string, message: string, ...meta: any[]) =>
-	LOG.GetLogger("app")?.log(level, message, ...meta),
-};
+import OpenAI from 'openai';
 
 export class OpenAIClient {
-  private apiKey: string;
-  private apiUrl: string;
+  private openai: OpenAI;
+
+  // 默认配置
+  private static defaultMaxTokens = 200;
+  private static defaultTemperature = 0.7;
 
   constructor(apiKey: string) {
-    this.apiKey = apiKey;
-    this.apiUrl = 'https://api.openai.com/v1'; // OpenAI API 的基础 URL
+    this.openai = new OpenAI({ apiKey: apiKey });
   }
 
   /**
-   * 调用 OpenAI Chat Completion API
-   * @param messages 对话内容
-   * @param model 使用的模型（如 'gpt-4' 或 'gpt-3.5-turbo'）
-   * @returns AI 返回的响应
+   * 获取 Chat Completion 的结果
+   * @param messages - 聊天消息数组
+   * @param model - 使用的模型 (默认: gpt-4)
+   * @param maxTokens - 最大生成的 token 数量 (默认: 200)
+   * @param temperature - 创造性参数，控制输出随机性 (默认: 0.7)
+   * @returns 生成的聊天内容
    */
-  async getChatCompletion(messages: { role: string; content: string }[], model: string = 'gpt-3.5-turbo'): Promise<any> {
+  async getChatCompletion(
+    messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
+    model: string = process.env.OPENAI_MODEL,
+    maxTokens: number = OpenAIClient.defaultMaxTokens,
+    temperature: number = OpenAIClient.defaultTemperature
+  ): Promise<string> {
     try {
-      const response = await axios.post(
-        `${this.apiUrl}/chat/completions`,
-        {
-          model,
-          messages,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-		Logger.log('error','Error calling OpenAI API:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.error?.message || error.message);
-    }
-  }
+      const response = await this.openai.chat.completions.create({
+        model,
+        messages,
+        max_tokens: maxTokens,
+        temperature,
+      });
 
-  /**
-   * 调用 OpenAI Completion API
-   * @param prompt 输入提示
-   * @param model 使用的模型
-   * @param maxTokens 最大生成令牌数
-   * @returns AI 返回的响应
-   */
-  async getCompletion(prompt: string, model: string = 'gpt-3.5-turbo', maxTokens: number = 100): Promise<any> {
-    try {
-      const response = await axios.post(
-        `${this.apiUrl}/completions`,
-        {
-          model,
-          prompt,
-          max_tokens: maxTokens,
-        },
-        {
-          headers: {
-            'Content-Type': 'application/json',
-            Authorization: `Bearer ${this.apiKey}`,
-          },
-        }
-      );
-      return response.data;
-    } catch (error) {
-      Logger.log('error','Error calling OpenAI API:', error.response?.data || error.message);
-      throw new Error(error.response?.data?.error?.message || error.message);
+      // 确保返回的数据是有效的
+      if (!response.choices || response.choices.length === 0) {
+        throw new Error('No choices returned from OpenAI API.');
+      }
+
+      return response.choices[0].message?.content || 'No response content.';
+    } catch (error: any) {
+      
+      throw new Error(error);
     }
   }
 }
-
