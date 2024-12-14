@@ -32,13 +32,13 @@ class KttWebSrv {
         this.app.get('/', (req: Request, res: Response) => {
             let rspstr = `use the following commands to:
                 1.distribute daily billing:\r\n
-                    https://localhost:8080/api \r\n
+                    https://localhost:8080/api {action,paidan}\r\n
                 2.update the coming back billing:\r\n
-                    https://localhost:8080/api \r\n
+                    https://localhost:8080/api {action,huidan}\r\n
                 3.set AI key:\r\n
-                    https://localhost:8080/api/setkey  \r\n
+                    https://localhost:8080/api/setkey  {name,key}\r\n
                 4.talk to AI:/r/n
-                    https://localhost:8080/api/talk`
+                    https://localhost:8080/api/talk {content}`
             res.setHeader('Content-Type', 'text/plain');    
             res.send(`<pre>\r\n${rspstr}\r\n</pre>`);
         });
