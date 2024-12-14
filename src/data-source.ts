@@ -12,7 +12,6 @@ export const AppDataSource = new DataSource({
   username: process.env.DB_USERNAME || 'root',
   password: process.env.DB_PASSWORD ||'',
   database: process.env.DB_NAME ||"test",
-  timezone: process.env.TZ || 'Z',
   synchronize: true,
   logging: false,
   entities: [Client, Billing, Key],

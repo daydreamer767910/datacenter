@@ -1,17 +1,31 @@
+import dotenv from "dotenv";
 import * as path from "path";
 import * as APP from "./app";
-import { GetLogger } from "./logger";
+import { Register } from "./logger";
 import * as Readline from "readline";
 import { comm_clnt_command } from "./commclnt";
 //import * as packageInfo from "../package.json";
 import * as fs from "fs";
+import { Commsrv } from "./commsrv";
+import { Websrv } from "./websrv";
 
-APP.initialize()
-  .then(() => {
-    APP.run();
-    cli_startup();
-  })
-  .catch((error) => GetLogger("sys").log("error", error));
+const envPath = path.resolve(__dirname, "../.env");
+const result = dotenv.config({ path: envPath });
+if (result.parsed) {
+  const LogServices = ["app", "comm", "sys", "db"];
+  Register(LogServices);
+  Commsrv.initialize(Number(process.env.COMM_PORT));
+  Websrv.initialize(Number(process.env.WEB_PORT));
+  APP.initialize()
+    .then(() => {
+      APP.run();
+      cli_startup();
+    })
+    .catch((error) => console.log("error", error));
+} else {
+  console.log(`config env ${envPath} failed: ${result.error}`);
+}
+
 
 function cli_startup() {
   const packageInfo = JSON.parse(

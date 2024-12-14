@@ -1,13 +1,24 @@
 #!/usr/bin/env node
-import { Table, RowData } from "./table";
-import { DbCore } from "./dbcore";
+import dotenv from "dotenv";
+import * as path from "path";
 import * as APP from "./app";
-import { GetLogger } from "./logger";
+import { Register,GetLogger } from "./logger";
+import { Commsrv } from "./commsrv";
+import { Websrv } from "./websrv";
 
-APP.initialize()
-  .then(() => {
-    APP.run();
-  })
-  .catch((error) => GetLogger("sys").log("error", error));
+const envPath = path.resolve(__dirname, "../.env");
+const result = dotenv.config({ path: envPath });
+if (result.parsed) {
+  const LogServices = ["app", "comm", "sys", "db"];
+  Register(LogServices);
+  Commsrv.initialize(Number(process.env.COMM_PORT));
+  Websrv.initialize(Number(process.env.WEB_PORT));
+  APP.initialize()
+    .then(() => {
+      APP.run();
+    })
+    .catch((error) => GetLogger("sys").log("error", error));
+} else {
+  console.log(`config env ${envPath} failed: ${result.error}`);
+}
 
-export { Table, RowData, DbCore };

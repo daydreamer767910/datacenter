@@ -1,8 +1,5 @@
 import * as LOG from "./logger";
-import dotenv from "dotenv";
 import { AppDataSource } from "./data-source";
-import { Commsrv } from "./commsrv";
-import { Websrv } from "./websrv";
 //import { Mutex, Semaphore } from "./mutex";
 import { Semaphore } from "./mutex";
 import ffi from "ffi-napi";
@@ -17,18 +14,6 @@ const Logger = {
 
 function initialize() {
   return new Promise<void>((resolve, reject) => {
-    const envPath = path.resolve(__dirname, "../.env");
-    // console.log(envPath);
-    const result = dotenv.config({ path: envPath });
-    if (result.error) {
-      reject(result.error);
-    }
-    //console.log(result.parsed);
-    const LogServices = ["app", "comm", "sys", "db"];
-    LOG.Register(LogServices);
-
-    Commsrv.initialize(Number(process.env.COMM_PORT));
-    Websrv.initialize(Number(process.env.WEB_PORT));
     AppDataSource.initialize().then((datasource) => {
       if (datasource.isInitialized) {
         Logger.log(
