@@ -3,7 +3,8 @@ import https from "https";
 import fs from "fs";
 import { App } from "./app";
 import { GetLogger } from "./logger";
-import { OpenAIClient } from "./openaiclient";
+//import { OpenAIClient } from "./openaiclient";
+import { OpenAIService, HuggingFaceService } from './AIServiceInstances';
 import { KeyMng } from "./keymng";
 
 class KttWebSrv {
@@ -68,7 +69,7 @@ class KttWebSrv {
           .send({ error: "Internal server error", details: error.message });
       }
     });
-    this.app.post("/api/talk", async (req: Request, res: Response) => {
+    this.app.post("/api/openai", async (req: Request, res: Response) => {
       const { content } = req.body;
       if (!content) {
         return res.status(400).send({ error: "Action not provided!" });
@@ -83,19 +84,55 @@ class KttWebSrv {
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
-        const retrievedKey = await keyMng.getKeyByName(process.env.API_KEYNAME);
+        const retrievedKey = await keyMng.getKeyByName('openai-api-key');
         if (!retrievedKey || !retrievedKey.key) {
           this.log("error", "API Key not found or invalid.");
           return res.status(500).send({ error: "API Key not found." });
         }
         // 初始化 OpenAI 客户端
-        const openAIClient = new OpenAIClient(retrievedKey.key);
-        const textResponse = await openAIClient.getChatCompletion(messages);
-        this.log("info", "Text Completion Response:", textResponse);
+        //const openAIClient = new OpenAIClient(retrievedKey.key);
+        //const textResponse = await openAIClient.getChatCompletion(messages);
+        const openAI = new OpenAIService(retrievedKey.key);
+        const openAIResponse = await openAI.sendMessage('chat/completions', {
+          model: process.env.OPENAI_MODEL,
+          messages: messages,
+          max_tokens: 100, // 限制生成内容的长度
+          temperature: 0.7, // 生成内容的随机性
+        });
+        this.log("info", "Text Completion Response:", openAIResponse);
         // 返回响应
-        return res.send({ message: textResponse });
+        return res.send({ message: openAIResponse });
       } catch (error) {
         this.log("debug", "Error in OpenAI API request:", error);
+        return res.status(500).send({
+          error: "Failed to talk with AI.",
+          details: error.message || "Unknown error",
+        });
+      }
+    });
+    this.app.post("/api/huggingface", async (req: Request, res: Response) => {
+      const { content } = req.body;
+      if (!content) {
+        return res.status(400).send({ error: "Action not provided!" });
+      }
+      
+      try {
+        // 获取 API 密钥
+        const keyMng = new KeyMng();
+        const retrievedKey = await keyMng.getKeyByName('huggingface-api-key');
+        if (!retrievedKey || !retrievedKey.key) {
+          this.log("error", "API Key not found or invalid.");
+          return res.status(500).send({ error: "API Key not found." });
+        }
+        const huggingFace = new HuggingFaceService(retrievedKey.key);
+        const hfResponse = await huggingFace.sendMessage('', {
+          inputs: content,
+        });
+        this.log("info", "Text Completion Response:", hfResponse);
+        // 返回响应
+        return res.send({ message: hfResponse });
+      } catch (error) {
+        this.log("debug", "Error in huggingface API request:", error);
         return res.status(500).send({
           error: "Failed to talk with AI.",
           details: error.message || "Unknown error",
