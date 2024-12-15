@@ -2,7 +2,7 @@
 import dotenv from "dotenv";
 import * as path from "path";
 import { App } from "./app";
-import { Register,GetLogger } from "./logger";
+import { Register, GetLogger } from "./logger";
 import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";
 import { Websrv } from "./websrv";
@@ -20,12 +20,11 @@ if (result.parsed) {
       );
       Commsrv.initialize(Number(process.env.COMM_PORT));
       Websrv.initialize(Number(process.env.WEB_PORT));
-      App.initialize()
+      App.initialize();
     } else {
-      GetLogger("db").log("error","Database initialize failure");
+      GetLogger("db").log("error", "Database initialize failure");
     }
   });
 } else {
   console.log(`config env ${envPath} failed: ${result.error}`);
 }
-

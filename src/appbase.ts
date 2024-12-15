@@ -1,14 +1,12 @@
 import { MessageQueue, IMemoryMessage } from "./memmsgq";
 import { GetLogger } from "./logger";
 
-
-
 abstract class AppBase<T extends IMemoryMessage> {
   protected logger: any;
   protected messageQueue: MessageQueue<T>;
   private msgID: number;
 
-  constructor(queueSize: number = 50) {
+  constructor(queueSize = 50) {
     this.messageQueue = new MessageQueue<T>(queueSize);
     this.msgID = 0;
   }
@@ -19,7 +17,7 @@ abstract class AppBase<T extends IMemoryMessage> {
 
   initialize() {
     this.logger = GetLogger("app");
-	this.run();
+    this.run();
   }
 
   public async postMessage(msg: Partial<T>) {

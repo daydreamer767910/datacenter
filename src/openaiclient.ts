@@ -1,4 +1,4 @@
-import OpenAI from 'openai';
+import OpenAI from "openai";
 
 export class OpenAIClient {
   private openai: OpenAI;
@@ -20,7 +20,7 @@ export class OpenAIClient {
    * @returns 生成的聊天内容
    */
   async getChatCompletion(
-    messages: { role: 'system' | 'user' | 'assistant'; content: string }[],
+    messages: { role: "system" | "user" | "assistant"; content: string }[],
     model: string = process.env.OPENAI_MODEL,
     maxTokens: number = OpenAIClient.defaultMaxTokens,
     temperature: number = OpenAIClient.defaultTemperature
@@ -35,12 +35,11 @@ export class OpenAIClient {
 
       // 确保返回的数据是有效的
       if (!response.choices || response.choices.length === 0) {
-        throw new Error('No choices returned from OpenAI API.');
+        throw new Error("No choices returned from OpenAI API.");
       }
 
-      return response.choices[0].message?.content || 'No response content.';
+      return response.choices[0].message?.content || "No response content.";
     } catch (error: any) {
-      
       throw new Error(error);
     }
   }

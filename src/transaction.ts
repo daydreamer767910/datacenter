@@ -181,9 +181,7 @@ async function filterBills(
   dstDir = dstDir
     ? dstDir
     : process.env.KTT_PATH + "/dailybill/" + format_date() + "/bak";
-  srcDir = srcDir
-    ? srcDir
-    : process.env.KTT_PATH + "/express/" + format_date();
+  srcDir = srcDir ? srcDir : process.env.KTT_PATH + "/express/" + format_date();
   const fileinfos = await BillFs.fileSearch(srcDir, searchSubDir, filterName);
   //console.log(fileinfos);
   const bill = new Bill(BillFs.dailybill_back);

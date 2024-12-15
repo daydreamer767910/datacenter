@@ -14,23 +14,22 @@ import { Websrv } from "./websrv";
 const envPath = path.resolve(__dirname, "../.env");
 const result = dotenv.config({ path: envPath });
 if (result.parsed) {
-  const LogServices = ["app", "comm","web", "sys", "db"];
+  const LogServices = ["app", "comm", "web", "sys", "db"];
   Register(LogServices);
   AppDataSource.initialize().then((datasource) => {
-      if (datasource.isInitialized) {
-        console.log(
-          "Database connected. Here you can setup and run any other framework."
-        );
-        App.initialize();
-        cli_startup();
-      } else {
-        console.error("Database initialize failure");
-      }
-    });
+    if (datasource.isInitialized) {
+      console.log(
+        "Database connected. Here you can setup and run any other framework."
+      );
+      App.initialize();
+      cli_startup();
+    } else {
+      console.error("Database initialize failure");
+    }
+  });
 } else {
   console.log(`config env ${envPath} failed: ${result.error}`);
 }
-
 
 function cli_startup() {
   const packageInfo = JSON.parse(
@@ -64,11 +63,11 @@ function cli_startup() {
         console.log(packageInfo.description);
         break;
       case "commsrv":
-        Commsrv.initialize(Number(cmds[1]||'7899'));
-        break
+        Commsrv.initialize(Number(cmds[1] || "7899"));
+        break;
       case "websrv":
-        Websrv.initialize(Number(cmds[1]||'8080'));
-        break
+        Websrv.initialize(Number(cmds[1] || "8080"));
+        break;
       case "send":
         comm_clnt_command(cmds);
         break;

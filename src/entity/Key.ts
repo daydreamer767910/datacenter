@@ -11,6 +11,6 @@ export class Key {
   @Column({ length: 2048 })
   key: string;
 
-  @Column({ type: 'timestamp', default: () => 'CURRENT_TIMESTAMP' })
+  @Column({ type: "timestamp", default: () => "CURRENT_TIMESTAMP" })
   date: Date;
 }

@@ -5,7 +5,7 @@ import * as path from "path";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
 import ffi from "ffi-napi";
 
-interface CmdMsg extends IMemoryMessage{
+interface CmdMsg extends IMemoryMessage {
   cmd: string;
   opt: string[];
 }
@@ -21,15 +21,15 @@ enum CommandType {
 }
 
 class KttApp extends AppBase<CmdMsg> {
-	private semaphore: Semaphore;
-	constructor(queueSize: number) {
-		super(queueSize)
-		this.semaphore = new Semaphore(0);
-	}
-	initialize() {
-		super.initialize(); // 调用基类的初始化逻辑
-    this.log("debug",'KTT App initialized and start running');
-	}
+  private semaphore: Semaphore;
+  constructor(queueSize: number) {
+    super(queueSize);
+    this.semaphore = new Semaphore(0);
+  }
+  initialize() {
+    super.initialize(); // 调用基类的初始化逻辑
+    this.log("debug", "KTT App initialized and start running");
+  }
   protected async onMessage(message: CmdMsg): Promise<void> {
     const { cmd, opt } = message;
     this.log("info", `Received command: ${cmd}, options: ${opt.join(", ")}`);
@@ -99,52 +99,54 @@ class KttApp extends AppBase<CmdMsg> {
   }
 
   private async runTest() {
-	async function criticalSection(app: KttApp,num: number) {
-	//Logger.log("info", "----------------criticalSection is called %d", num);
-	await app.semaphore
-		.acquire(10000)
-		.then(async () => {
-			// 临界区代码
-			app.log("info", "Entering critical section %d", num);
-			await new Promise((resolve) => setTimeout(resolve, 2000)); // 模拟耗时操作
-			app.log("info", "Exiting critical section %d", num);
-			})
-		.catch((reason: any) => {
-			console.log(reason);
-		});
+    async function criticalSection(app: KttApp, num: number) {
+      //Logger.log("info", "----------------criticalSection is called %d", num);
+      await app.semaphore
+        .acquire(10000)
+        .then(async () => {
+          // 临界区代码
+          app.log("info", "Entering critical section %d", num);
+          await new Promise((resolve) => setTimeout(resolve, 2000)); // 模拟耗时操作
+          app.log("info", "Exiting critical section %d", num);
+        })
+        .catch((reason: any) => {
+          console.log(reason);
+        });
 
-	//Logger.log("info", "=================criticalSection end %d", num);
-	}
+      //Logger.log("info", "=================criticalSection end %d", num);
+    }
 
-	// 测试互斥锁
-	//let profiler = Logger().startTimer();
-	//sem.release();
-	criticalSection(this,1);
-	//sem.release();
-	//Logger.log("info", "sem release");
-	criticalSection(this,2);
-	criticalSection(this,3);
+    // 测试互斥锁
+    //let profiler = Logger().startTimer();
+    //sem.release();
+    criticalSection(this, 1);
+    //sem.release();
+    //Logger.log("info", "sem release");
+    criticalSection(this, 2);
+    criticalSection(this, 3);
 
-	const fileName = path.resolve(__dirname, "../lib/libmylib.so");
-	console.log(`starting to load : ${fileName}`);
-	try {
-		const conn = ffi.DynamicLibrary(fileName, ffi.DynamicLibrary.FLAGS.RTLD_LAZY);
-		console.log(
-			"load dll with add[%s] method ok",
-			conn.get("add").hexAddress()
-		);
+    const fileName = path.resolve(__dirname, "../lib/libmylib.so");
+    console.log(`starting to load : ${fileName}`);
+    try {
+      const conn = ffi.DynamicLibrary(
+        fileName,
+        ffi.DynamicLibrary.FLAGS.RTLD_LAZY
+      );
+      console.log(
+        "load dll with add[%s] method ok",
+        conn.get("add").hexAddress()
+      );
 
-		const mylib = ffi.Library(fileName, {
-			add: ["int", ["int", "int"]],
-		});
+      const mylib = ffi.Library(fileName, {
+        add: ["int", ["int", "int"]],
+      });
 
-		// 调用共享库中的函数
-		const result = mylib.add(5, 10);
-		console.log("%s(5,10) Result:", Object.keys(mylib), result);
-	} catch (err) {
-		console.log("Not loaded: " + fileName + err);
-	}
+      // 调用共享库中的函数
+      const result = mylib.add(5, 10);
+      console.log("%s(5,10) Result:", Object.keys(mylib), result);
+    } catch (err) {
+      console.log("Not loaded: " + fileName + err);
+    }
   }
 }
 export const App = new KttApp(50);
-
