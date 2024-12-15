@@ -83,7 +83,7 @@ class KttWebSrv {
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
-        const retrievedKey = await keyMng.getKeyByName("API Key");
+        const retrievedKey = await keyMng.getKeyByName(process.env.API_KEYNAME);
         if (!retrievedKey || !retrievedKey.key) {
           this.log("error", "API Key not found or invalid.");
           return res.status(500).send({ error: "API Key not found." });
