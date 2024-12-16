@@ -125,8 +125,14 @@ class KttWebSrv {
           return res.status(500).send({ error: "API Key not found." });
         }
         const huggingFace = new HuggingFaceService(retrievedKey.key);
-        const hfResponse = await huggingFace.sendMessage('', {
+        const hfResponse = await huggingFace.sendMessage('models/gpt2', {
           inputs: content,
+          "parameters": {
+            "max_length": 100,
+            "temperature": 0.7,
+            "top_k": 50,
+            "repetition_penalty": 1.2
+          }
         });
         this.log("info", "Text Completion Response:", hfResponse);
         // 返回响应

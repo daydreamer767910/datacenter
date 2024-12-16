@@ -40,9 +40,7 @@ export class AIServiceBase {
     } catch (error) {
       if (axios.isAxiosError(error)) {
         throw new Error(
-          `Request failed: ${error.response?.status || 'unknown'} - ${
-            error.response?.statusText || error.message
-          }`
+          `Error: ${error.message}:${error.response?.status||'unknown'}-${error.response?.statusText }`
         );
       } else {
         throw new Error(`Unexpected error: ${error}`);
