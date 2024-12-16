@@ -8,7 +8,7 @@ export const OpenAIService = createAIService({
 
 // 定义 Hugging Face 服务
 export const HuggingFaceService = createAIService({
-  baseUrl: 'https://api-inference.huggingface.co/',
+  baseUrl: 'https://api-inference.huggingface.co/models/',
   timeout: 10000,
   transformResponse: (response) => response.generated_text || '',
 });

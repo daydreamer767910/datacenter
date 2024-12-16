@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import dotenv from "dotenv";
 import * as path from "path";
+import * as fs from "fs";
 import { App } from "./app";
 import { Register, GetLogger } from "./logger";
 import { AppDataSource } from "./data-source";
@@ -21,6 +22,10 @@ if (result.parsed) {
       Commsrv.initialize(Number(process.env.COMM_PORT));
       Websrv.initialize(Number(process.env.WEB_PORT));
       App.initialize();
+      const packageInfo = JSON.parse(
+          fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8")
+      );
+      GetLogger("app").log("info", `KTT app V${packageInfo.version}:${packageInfo.description} is running`);
     } else {
       GetLogger("db").log("error", "Database initialize failure");
     }

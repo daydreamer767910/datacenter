@@ -3,11 +3,10 @@ import https from "https";
 import fs from "fs";
 import { App } from "./app";
 import { GetLogger } from "./logger";
-//import { OpenAIClient } from "./openaiclient";
 import { OpenAIService, HuggingFaceService } from './AIServiceInstances';
 import { KeyMng } from "./keymng";
 
-class KttWebSrv {
+class WebSrv {
   private app: Express;
   private port: number;
   private server: https.Server;
@@ -33,13 +32,13 @@ class KttWebSrv {
     this.app.get("/", (req: Request, res: Response) => {
       const rspstr = `use the following commands to:
                 1.distribute daily billing:\r\n
-                    https://localhost:8080/api {action,paidan}\r\n
+                    https://localhost:8080/api/ktt {action,paidan}\r\n
                 2.update the coming back billing:\r\n
-                    https://localhost:8080/api {action,huidan}\r\n
+                    https://localhost:8080/api/ktt {action,huidan}\r\n
                 3.set AI key:\r\n
                     https://localhost:8080/api/setkey  {name,key}\r\n
                 4.talk to AI:/r/n
-                    https://localhost:8080/api/talk {content}`;
+                    https://localhost:8080/api/talk?to=towho {content}`;
       res.setHeader("Content-Type", "text/plain");
       res.send(`<pre>\r\n${rspstr}\r\n</pre>`);
     });
@@ -69,10 +68,11 @@ class KttWebSrv {
           .send({ error: "Internal server error", details: error.message });
       }
     });
-    this.app.post("/api/openai", async (req: Request, res: Response) => {
+    this.app.post("/api/talk", async (req: Request, res: Response) => {
+      const { to } = req.query;
       const { content } = req.body;
-      if (!content) {
-        return res.status(400).send({ error: "Action not provided!" });
+      if (!to || !content) {
+        return res.status(400).send({ error: "query not provided!" });
       }
       const messages: {
         role: "system" | "user" | "assistant";
@@ -84,68 +84,51 @@ class KttWebSrv {
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
-        const retrievedKey = await keyMng.getKeyByName('openai-api-key');
+        const keyname = to + '-api-key';
+        const retrievedKey = await keyMng.getKeyByName(keyname);
         if (!retrievedKey || !retrievedKey.key) {
-          this.log("error", "API Key not found or invalid.");
-          return res.status(500).send({ error: "API Key not found." });
+          this.log("error", `Key(${keyname}) not found or invalid.`);
+          return res.status(500).send({ error: `Key(${keyname}) not found or invalid.` });
         }
-        // 初始化 OpenAI 客户端
-        //const openAIClient = new OpenAIClient(retrievedKey.key);
-        //const textResponse = await openAIClient.getChatCompletion(messages);
-        const openAI = new OpenAIService(retrievedKey.key);
-        const openAIResponse = await openAI.sendMessage('chat/completions', {
-          model: process.env.OPENAI_MODEL,
-          messages: messages,
-          max_tokens: 100, // 限制生成内容的长度
-          temperature: 0.7, // 生成内容的随机性
-        });
-        this.log("info", "Text Completion Response:", openAIResponse);
+        var AIResponse: string = '';
+        // 初始化 AI 客户端
+        switch ( to ) {
+          case 'openai':
+            AIResponse = await new OpenAIService(retrievedKey.key).sendMessage('chat/completions', {
+              model: process.env.OPENAI_MODEL || 'gpt-4o',
+              messages: messages,
+              max_tokens: 50, // 限制生成内容的长度
+              temperature: 0.7, // 生成内容的随机性
+            });
+            break;
+          case 'huggingface':
+            AIResponse = await new HuggingFaceService(retrievedKey.key).sendMessage(process.env.HF_MODEL||'gpt2', {
+              inputs: content,
+              "parameters": {
+                "max_length": 100,
+                "temperature": 0.7,
+                //"num_return_sequences": 1,
+                //"top_k": 50,
+                //"repetition_penalty": 1.2
+              }
+            });
+            break;
+          default:
+            throw new Error('unknown AI');
+        }
+        this.log("info", "Text Completion Response:", AIResponse);
         // 返回响应
-        return res.send({ message: openAIResponse });
+        return res.send({ message: AIResponse });
       } catch (error) {
-        this.log("debug", "Error in OpenAI API request:", error);
+        this.log("debug", "Error in talk to AI request:", error);
         return res.status(500).send({
           error: "Failed to talk with AI.",
           details: error.message || "Unknown error",
         });
       }
     });
-    this.app.post("/api/huggingface", async (req: Request, res: Response) => {
-      const { content } = req.body;
-      if (!content) {
-        return res.status(400).send({ error: "Action not provided!" });
-      }
-      
-      try {
-        // 获取 API 密钥
-        const keyMng = new KeyMng();
-        const retrievedKey = await keyMng.getKeyByName('huggingface-api-key');
-        if (!retrievedKey || !retrievedKey.key) {
-          this.log("error", "API Key not found or invalid.");
-          return res.status(500).send({ error: "API Key not found." });
-        }
-        const huggingFace = new HuggingFaceService(retrievedKey.key);
-        const hfResponse = await huggingFace.sendMessage('models/gpt2', {
-          inputs: content,
-          "parameters": {
-            "max_length": 100,
-            "temperature": 0.7,
-            "top_k": 50,
-            "repetition_penalty": 1.2
-          }
-        });
-        this.log("info", "Text Completion Response:", hfResponse);
-        // 返回响应
-        return res.send({ message: hfResponse });
-      } catch (error) {
-        this.log("debug", "Error in huggingface API request:", error);
-        return res.status(500).send({
-          error: "Failed to talk with AI.",
-          details: error.message || "Unknown error",
-        });
-      }
-    });
-    this.app.post("/api", async (req: Request, res: Response) => {
+    
+    this.app.post("/api/ktt", async (req: Request, res: Response) => {
       const { action } = req.body; // 解构获取 action
       if (action) {
         const params = action.toString().split(" ");
@@ -175,4 +158,4 @@ class KttWebSrv {
     });
   }
 }
-export const Websrv = new KttWebSrv();
+export const Websrv = new WebSrv();

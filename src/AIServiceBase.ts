@@ -39,9 +39,15 @@ export class AIServiceBase {
       throw new Error('Transform response function is not defined.');
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        throw new Error(
-          `Error: ${error.message}:${error.response?.status||'unknown'}-${error.response?.statusText }`
-        );
+        if ( error.code === 'ECONNABORTED' ) {
+          throw new Error(
+            `Timeout: ${error.message}`
+          );
+        } else {
+          throw new Error(
+            `Error: ${error.message}:${error.response?.status||'unknown'}-${error.response?.statusText }`
+          );
+        }
       } else {
         throw new Error(`Unexpected error: ${error}`);
       }
