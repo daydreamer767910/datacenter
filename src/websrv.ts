@@ -3,7 +3,7 @@ import https from "https";
 import fs from "fs";
 import { App } from "./app";
 import { GetLogger } from "./logger";
-import { OpenAIService, HuggingFaceService } from './AIServiceInstances';
+import { OpenAIService, HuggingFaceService } from "./AIServiceInstances";
 import { KeyMng } from "./keymng";
 
 class WebSrv {
@@ -84,37 +84,44 @@ class WebSrv {
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
-        const keyname = to + '-api-key';
+        const keyname = to + "-api-key";
         const retrievedKey = await keyMng.getKeyByName(keyname);
         if (!retrievedKey || !retrievedKey.key) {
           this.log("error", `Key(${keyname}) not found or invalid.`);
-          return res.status(500).send({ error: `Key(${keyname}) not found or invalid.` });
+          return res
+            .status(500)
+            .send({ error: `Key(${keyname}) not found or invalid.` });
         }
-        var AIResponse: string = '';
+        let AIResponse = "";
         // 初始化 AI 客户端
-        switch ( to ) {
-          case 'openai':
-            AIResponse = await new OpenAIService(retrievedKey.key).sendMessage('chat/completions', {
-              model: process.env.OPENAI_MODEL || 'gpt-4o',
-              messages: messages,
-              max_tokens: 50, // 限制生成内容的长度
-              temperature: 0.7, // 生成内容的随机性
-            });
+        switch (to) {
+          case "openai":
+            AIResponse = await new OpenAIService(retrievedKey.key).sendMessage(
+              "chat/completions",
+              {
+                model: process.env.OPENAI_MODEL || "gpt-4o",
+                messages: messages,
+                max_tokens: 50, // 限制生成内容的长度
+                temperature: 0.7, // 生成内容的随机性
+              }
+            );
             break;
-          case 'huggingface':
-            AIResponse = await new HuggingFaceService(retrievedKey.key).sendMessage(process.env.HF_MODEL||'gpt2', {
+          case "huggingface":
+            AIResponse = await new HuggingFaceService(
+              retrievedKey.key
+            ).sendMessage(process.env.HF_MODEL || "gpt2", {
               inputs: content,
-              "parameters": {
-                "max_length": 100,
-                "temperature": 0.7,
+              parameters: {
+                max_length: 100,
+                temperature: 0.7,
                 //"num_return_sequences": 1,
                 //"top_k": 50,
                 //"repetition_penalty": 1.2
-              }
+              },
             });
             break;
           default:
-            throw new Error('unknown AI');
+            throw new Error("unknown AI");
         }
         this.log("info", "Text Completion Response:", AIResponse);
         // 返回响应
@@ -127,7 +134,7 @@ class WebSrv {
         });
       }
     });
-    
+
     this.app.post("/api/ktt", async (req: Request, res: Response) => {
       const { action } = req.body; // 解构获取 action
       if (action) {

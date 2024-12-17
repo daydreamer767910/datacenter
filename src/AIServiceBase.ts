@@ -1,4 +1,4 @@
-import axios, { AxiosInstance } from 'axios';
+import axios, { AxiosInstance } from "axios";
 
 // 通用接口定义
 export interface AIServiceConfig {
@@ -8,7 +8,7 @@ export interface AIServiceConfig {
 }
 
 export interface AIMessage {
-  role: 'user' | 'assistant' | 'system';
+  role: "user" | "assistant" | "system";
   content: string;
 }
 
@@ -21,7 +21,7 @@ export class AIServiceBase {
       baseURL: config.baseUrl,
       headers: {
         Authorization: `Bearer ${apiKey}`,
-        'Content-Type': 'application/json',
+        "Content-Type": "application/json",
       },
       timeout: config.timeout || 5000,
     });
@@ -36,16 +36,16 @@ export class AIServiceBase {
       if (this.transformResponse) {
         return this.transformResponse(response.data);
       }
-      throw new Error('Transform response function is not defined.');
+      throw new Error("Transform response function is not defined.");
     } catch (error) {
       if (axios.isAxiosError(error)) {
-        if ( error.code === 'ECONNABORTED' ) {
-          throw new Error(
-            `Timeout: ${error.message}`
-          );
+        if (error.code === "ECONNABORTED") {
+          throw new Error(`Timeout: ${error.message}`);
         } else {
           throw new Error(
-            `Error: ${error.message}:${error.response?.status||'unknown'}-${error.response?.statusText }`
+            `Error: ${error.message}:${error.response?.status || "unknown"}-${
+              error.response?.statusText
+            }`
           );
         }
       } else {

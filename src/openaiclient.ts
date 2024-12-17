@@ -8,7 +8,7 @@ export class OpenAIClient {
   private static defaultTemperature = 0.7;
 
   constructor(apiKey: string) {
-    this.openai = new OpenAI({ baseURL: process.env.BASE_URL , apiKey: apiKey });
+    this.openai = new OpenAI({ baseURL: process.env.BASE_URL, apiKey: apiKey });
   }
 
   /**

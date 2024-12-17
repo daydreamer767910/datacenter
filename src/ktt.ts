@@ -23,9 +23,12 @@ if (result.parsed) {
       Websrv.initialize(Number(process.env.WEB_PORT));
       App.initialize();
       const packageInfo = JSON.parse(
-          fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8")
+        fs.readFileSync(path.resolve(__dirname, "../package.json"), "utf-8")
       );
-      GetLogger("app").log("info", `KTT app V${packageInfo.version}:${packageInfo.description} is running`);
+      GetLogger("app").log(
+        "info",
+        `KTT app V${packageInfo.version}:${packageInfo.description} is running`
+      );
     } else {
       GetLogger("db").log("error", "Database initialize failure");
     }
