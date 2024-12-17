@@ -1,6 +1,9 @@
 #!/usr/bin/env node
 import dotenv from "dotenv";
 import * as path from "path";
+const envPath = path.resolve(__dirname, "../.env");
+const result = dotenv.config({ path: envPath });
+
 import * as fs from "fs";
 import { App } from "./app";
 import { Register, GetLogger } from "./logger";
@@ -8,8 +11,7 @@ import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";
 import { Websrv } from "./websrv";
 
-const envPath = path.resolve(__dirname, "../.env");
-const result = dotenv.config({ path: envPath });
+
 if (result.parsed) {
   const LogServices = ["app", "comm", "web", "sys", "db"];
   Register(LogServices);

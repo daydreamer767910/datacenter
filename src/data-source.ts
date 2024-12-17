@@ -7,7 +7,7 @@ import { Key } from "./entity/Key";
 export const AppDataSource = new DataSource({
   type: (process.env.DB_TYPE as any) || "mysql",
   charset: "utf8mb4",
-  host: process.env.DB_HOST || "host.docker.internal",
+  host: process.env.DB_HOST || "localhost",
   port: parseInt(process.env.DB_PORT || "3306", 10),
   username: process.env.DB_USERNAME || "root",
   password: process.env.DB_PASSWORD || "",
