@@ -3,7 +3,7 @@ import https from "https";
 import fs from "fs";
 import { App } from "./app";
 import { GetLogger } from "./logger";
-import { OpenAIService, HuggingFaceService } from "./AIServiceInstances";
+import * as AIService from "./AIServiceInstances";
 import { KeyMng } from "./keymng";
 
 class WebSrv {
@@ -81,22 +81,20 @@ class WebSrv {
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: content },
       ];
+      this.log('silly',`User Request:\r\n${content}`);
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
         const keyname = to + "-api-key";
         const retrievedKey = await keyMng.getKeyByName(keyname);
         if (!retrievedKey || !retrievedKey.key) {
-          this.log("error", `Key(${keyname}) not found or invalid.`);
-          return res
-            .status(500)
-            .send({ error: `Key(${keyname}) not found or invalid.` });
+          this.log("warn", `Key(${keyname}) not found or invalid.`);
         }
         let AIResponse = "";
         // 初始化 AI 客户端
         switch (to) {
           case "openai":
-            AIResponse = await new OpenAIService(retrievedKey.key).sendMessage(
+            AIResponse = await new AIService.OpenAIService(retrievedKey.key).sendMessage(
               "chat/completions",
               {
                 model: process.env.OPENAI_MODEL || "gpt-4o",
@@ -107,7 +105,7 @@ class WebSrv {
             );
             break;
           case "huggingface":
-            AIResponse = await new HuggingFaceService(
+            AIResponse = await new AIService.HuggingFaceService(
               retrievedKey.key
             ).sendMessage(process.env.HF_MODEL || "gpt2", {
               inputs: content,
@@ -119,11 +117,22 @@ class WebSrv {
                 //"repetition_penalty": 1.2
               },
             });
+            
+            break;
+          case "ollama":
+            AIResponse = await new AIService.OllamaService(retrievedKey.key).sendMessage(
+              "chat",
+              {
+                model: process.env.OLLAMA_MODEL || "llama3.2",
+                messages: messages
+              },
+              true
+            );
             break;
           default:
             throw new Error("unknown AI");
         }
-        this.log("info", "Text Completion Response:", AIResponse);
+        this.log('silly',`AI Response:\r\n${AIResponse}`);
         // 返回响应
         return res.send({ message: AIResponse });
       } catch (error) {

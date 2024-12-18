@@ -4,7 +4,7 @@ import axios, { AxiosInstance } from "axios";
 export interface AIServiceConfig {
   baseUrl: string;
   timeout?: number;
-  transformResponse?: (response: any) => string; // 定义响应转换方法
+  transformResponse?: (response: any) => Promise<string>; // 定义响应转换方法
 }
 
 export interface AIMessage {
@@ -14,7 +14,7 @@ export interface AIMessage {
 
 export class AIServiceBase {
   protected apiClient: AxiosInstance;
-  private transformResponse?: (response: any) => string;
+  private transformResponse?: (response: any) => Promise<string>;
 
   constructor(config: AIServiceConfig, apiKey: string) {
     this.apiClient = axios.create({
@@ -29,13 +29,20 @@ export class AIServiceBase {
   }
 
   // 通用方法: 向 API 发送请求
-  async sendMessage(endpoint: string, payload: object): Promise<string> {
+  async sendMessage(
+    endpoint: string,
+    payload: object,
+    isStream: boolean = false
+  ): Promise<string> {
     try {
-      const response = await this.apiClient.post(endpoint, payload);
-      // 使用自定义的响应转换器处理响应
+      const response = await this.apiClient.post(endpoint, payload, {
+        responseType: isStream ? "stream" : "json",
+      });
+
       if (this.transformResponse) {
-        return this.transformResponse(response.data);
+        return await this.transformResponse(response.data);
       }
+
       throw new Error("Transform response function is not defined.");
     } catch (error) {
       if (axios.isAxiosError(error)) {
@@ -53,6 +60,7 @@ export class AIServiceBase {
       }
     }
   }
+
 }
 
 // 类工厂函数
