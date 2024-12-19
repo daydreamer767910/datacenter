@@ -4,7 +4,6 @@ import * as path from "path";
 const envPath = path.resolve(__dirname, "../.env");
 const result = dotenv.config({ path: envPath });
 
-
 import { App } from "./app";
 import { Register } from "./logger";
 import * as Readline from "readline";
@@ -14,7 +13,6 @@ import * as fs from "fs";
 import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";
 import { Websrv } from "./websrv";
-
 
 if (result.parsed) {
   const LogServices = ["app", "comm", "web", "sys", "db"];

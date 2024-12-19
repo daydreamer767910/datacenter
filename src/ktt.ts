@@ -11,7 +11,6 @@ import { AppDataSource } from "./data-source";
 import { Commsrv } from "./commsrv";
 import { Websrv } from "./websrv";
 
-
 if (result.parsed) {
   const LogServices = ["app", "comm", "web", "sys", "db"];
   Register(LogServices);

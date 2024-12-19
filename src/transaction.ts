@@ -60,11 +60,7 @@ async function load_allbills(
       Logger.log("debug", `start to load ${fileinfo.path}`);
       //console.log(`start to load ${file}`);
       await bill
-        .LoadFromFile(
-          path.resolve(srcDir, fileinfo.path),
-          BillFs.billconfig.input.sheetid,
-          "7679"
-        )
+        .LoadFromFile(fileinfo.path, BillFs.billconfig.input.sheetid, "7679")
         .then((num) => {
           totalrows += num;
           Logger.log("debug", `${num} rows are loaded`);
@@ -190,10 +186,7 @@ async function filterBills(
     let totalrows = 0;
     for (const fileinfo of fileinfos) {
       for (let i = 0; i < 3; i++) {
-        const num = await bill.LoadFromFile(
-          path.resolve(srcDir, fileinfo.path),
-          i + 1
-        );
+        const num = await bill.LoadFromFile(fileinfo.path, i + 1);
         Logger.log("debug", "load %d rows from %s", num, fileinfo.path);
         if (num === 0) continue;
         totalrows += num;

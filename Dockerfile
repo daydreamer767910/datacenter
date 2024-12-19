@@ -27,7 +27,7 @@ RUN apt-get update && apt-get install -y \
     python3-pip \
     libffi-dev \
     libssl-dev \
-    dos2unix \
+#    dos2unix \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -40,7 +40,7 @@ RUN npm install
 # 复制 TypeScript 源代码和其他配置文件
 COPY src ./src
 COPY bin ./bin
-RUN dos2unix ./bin/*.sh
+#RUN dos2unix ./bin/*.sh
 COPY tsconfig.json ./
 COPY .eslintrc.json ./
 COPY .env ./

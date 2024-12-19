@@ -32,7 +32,7 @@ export class AIServiceBase {
   async sendMessage(
     endpoint: string,
     payload: object,
-    isStream: boolean = false
+    isStream = false
   ): Promise<string> {
     try {
       const response = await this.apiClient.post(endpoint, payload, {
@@ -60,7 +60,6 @@ export class AIServiceBase {
       }
     }
   }
-
 }
 
 // 类工厂函数

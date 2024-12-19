@@ -81,7 +81,7 @@ class WebSrv {
         { role: "system", content: "You are a helpful assistant." },
         { role: "user", content: content },
       ];
-      this.log('silly',`User Request:\r\n${content}`);
+      this.log("silly", `User Request:\r\n${content}`);
       try {
         // 获取 API 密钥
         const keyMng = new KeyMng();
@@ -94,15 +94,14 @@ class WebSrv {
         // 初始化 AI 客户端
         switch (to) {
           case "openai":
-            AIResponse = await new AIService.OpenAIService(retrievedKey.key).sendMessage(
-              "chat/completions",
-              {
-                model: process.env.OPENAI_MODEL || "gpt-4o",
-                messages: messages,
-                max_tokens: 50, // 限制生成内容的长度
-                temperature: 0.7, // 生成内容的随机性
-              }
-            );
+            AIResponse = await new AIService.OpenAIService(
+              retrievedKey.key
+            ).sendMessage("chat/completions", {
+              model: process.env.OPENAI_MODEL || "gpt-4o",
+              messages: messages,
+              max_tokens: 50, // 限制生成内容的长度
+              temperature: 0.7, // 生成内容的随机性
+            });
             break;
           case "huggingface":
             AIResponse = await new AIService.HuggingFaceService(
@@ -117,14 +116,16 @@ class WebSrv {
                 //"repetition_penalty": 1.2
               },
             });
-            
+
             break;
           case "ollama":
-            AIResponse = await new AIService.OllamaService(retrievedKey.key).sendMessage(
+            AIResponse = await new AIService.OllamaService(
+              retrievedKey.key
+            ).sendMessage(
               "chat",
               {
                 model: process.env.OLLAMA_MODEL || "llama3.2",
-                messages: messages
+                messages: messages,
               },
               true
             );
@@ -132,7 +133,7 @@ class WebSrv {
           default:
             throw new Error("unknown AI");
         }
-        this.log('silly',`AI Response:\r\n${AIResponse}`);
+        this.log("silly", `AI Response:\r\n${AIResponse}`);
         // 返回响应
         return res.send({ message: AIResponse });
       } catch (error) {

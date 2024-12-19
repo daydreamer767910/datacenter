@@ -4,7 +4,7 @@
 var=$(date +%m%d)
 
 # 设置源目录、目标目录和备份目录
-src="/app/dailybill/"
+src="$KTT_PATH/dailybill/"
 send="${src}${var}/"
 bak="${send}bak/"
 

@@ -18,7 +18,6 @@ export const GoogleBardService = createAIService({
   transformResponse: (response) => response.result.content, // 根据 Google Bard 的响应格式转换
 });
 
-
 const handleStreamResponse = async (stream: any): Promise<string> => {
   return new Promise((resolve, reject) => {
     let content = "";
