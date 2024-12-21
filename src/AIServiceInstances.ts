@@ -33,18 +33,16 @@ export const HuggingFaceService = createAIService({
   baseUrl: "https://api-inference.huggingface.co/models/",
   timeout: 100000,
   transformResponse: (json, stream): [boolean, string] => {
-    return stream 
-        ? [json.token?.special ?? false, json.token?.text || ''] 
-        : [true, json[0]?.generated_text || ''];
-  }
-    
+    return stream
+      ? [json.token?.special ?? false, json.token?.text || ""]
+      : [true, json[0]?.generated_text || ""];
+  },
 });
 
 export const GoogleBardService = createAIService({
   baseUrl: "https://api.googlebard.com/v1/",
   transformResponse: (json) => json.result.content, // 根据 Google Bard 的响应格式转换
 });
-
 
 // 定义ollama流式处理的服务
 /*
@@ -80,7 +78,9 @@ complete resp:
 export const OllamaService = createAIService({
   baseUrl: "http://host.docker.internal:11434/api/",
   timeout: 100000,
-  transformResponse: (json, stream): [boolean, string] => 
-    [stream ? json.done ?? false : true, json.message?.content || '']
+  transformResponse: (json, stream): [boolean, string] => [
+    stream ? json.done ?? false : true,
+    json.message?.content || "",
+  ],
 });
 // 未来新增服务时，只需要在这里添加配置即可

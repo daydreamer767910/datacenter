@@ -1,5 +1,5 @@
 import express, { Request, Response, Express } from "express";
-import multer from 'multer';
+import multer from "multer";
 import https from "https";
 import fs from "fs";
 import { App } from "./app";
@@ -13,7 +13,6 @@ class WebSrv {
   private server: https.Server;
   private logger: any;
   private upload: multer.Multer;
-  
 
   constructor() {
     this.app = express();
@@ -26,11 +25,15 @@ class WebSrv {
   }
 
   configureRoutes() {
-    this.app.get('/', this.handleHelp.bind(this));
-    this.app.post('/api/ktt', this.handleKtt.bind(this));
-    this.app.post('/api/setkey', this.handleSetKey.bind(this));
-    this.app.post('/api/talk', express.raw({ type: 'multipart/form-data', limit: '10mb' }),
-      this.upload.single('file'), this.handleTalk.bind(this));
+    this.app.get("/", this.handleHelp.bind(this));
+    this.app.post("/api/ktt", this.handleKtt.bind(this));
+    this.app.post("/api/setkey", this.handleSetKey.bind(this));
+    this.app.post(
+      "/api/talk",
+      express.raw({ type: "multipart/form-data", limit: "10mb" }),
+      this.upload.single("file"),
+      this.handleTalk.bind(this)
+    );
   }
 
   handleHelp(req: Request, res: Response) {
@@ -65,7 +68,7 @@ class WebSrv {
     } else {
       res.status(400).send({ error: "Action not provided!" });
     }
-  };
+  }
 
   async handleSetKey(req: Request, res: Response) {
     try {
@@ -90,30 +93,32 @@ class WebSrv {
         .status(500)
         .send({ error: "Internal server error", details: error.message });
     }
-  };
+  }
 
   async handleTalk(req: Request, res: Response) {
     const { to } = req.query;
     const { content } = req.body;
-    if (!to || !content ) {
-      return res.status(400).send({ error: "query not provided or text(image) missing" });
+    if (!to || !content) {
+      return res
+        .status(400)
+        .send({ error: "query not provided or text(image) missing" });
     }
     // 从 multer 提取数据
     const fileBuffer = req.file?.buffer; // 文件内容
-    
+
     const messages: {
       role: "system" | "user" | "assistant";
       content: string;
       image?: Uint8Array[] | string[];
     }[] = [
       {
-        role: "system", 
+        role: "system",
         content: "You are a helpful assistant.",
       },
       {
-        role: "user", 
+        role: "user",
         content: content,
-        image: [fileBuffer?.toString('base64')],
+        image: [fileBuffer?.toString("base64")],
       },
     ];
     this.log("debug", `User Request to ${to}:\r\n${content}`);
@@ -125,7 +130,7 @@ class WebSrv {
       if (!retrievedKey || !retrievedKey.key) {
         this.log("warn", `Key(${keyname}) not found or invalid.`);
       }
-      let AIResponse = '';
+      let AIResponse = "";
       const isStream = true;
       // 初始化 AI 客户端
       switch (to) {
@@ -147,7 +152,10 @@ class WebSrv {
             retrievedKey.key,
             (content: string) => {
               return new Promise<void>((resolve) => {
-                this.log("silly", `huggingfaceAI Stream Response:\r\n ${content}`);
+                this.log(
+                  "silly",
+                  `huggingfaceAI Stream Response:\r\n ${content}`
+                );
                 res.write(JSON.stringify({ message: content }));
                 resolve();
               });
@@ -168,17 +176,18 @@ class WebSrv {
           res.end();
           break;
         case "ollama":
-          AIResponse = await new AIService.OllamaService(retrievedKey.key)
-            .sendMessage(
-              "chat",
-              {
-                model: process.env.OLLAMA_MODEL || "llama3.2",
-                messages: messages,
-                stream: isStream,
-              },
-              isStream,
-              "\n"
-            );
+          AIResponse = await new AIService.OllamaService(
+            retrievedKey.key
+          ).sendMessage(
+            "chat",
+            {
+              model: process.env.OLLAMA_MODEL || "llama3.2",
+              messages: messages,
+              stream: isStream,
+            },
+            isStream,
+            "\n"
+          );
           this.log("silly", `ollamaAI Response:\r\n${AIResponse}`);
           // 返回最终响应
           res.send({ message: AIResponse });
@@ -186,7 +195,6 @@ class WebSrv {
         default:
           throw new Error("unknown AI");
       }
-      
     } catch (error) {
       this.log("error", `Error in talk to ${to}:`, error);
       return res.status(500).send({
@@ -194,7 +202,7 @@ class WebSrv {
         details: error.message || "Unknown error",
       });
     }
-  };
+  }
 
   public initialize(port: number): void {
     this.logger = GetLogger("web");
@@ -206,7 +214,7 @@ class WebSrv {
     this.app.use(express.json());
     // 配置路由
     this.configureRoutes();
-    
+
     // 创建 HTTPS 服务器
     this.server = https.createServer(
       { key: privateKey, cert: certificate },
