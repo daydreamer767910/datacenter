@@ -38,7 +38,12 @@ export class AIServiceBase {
       throw new Error("Transform response function is not defined.");
     }
     if (!isStream) {
-      const [_, content] = this.transformResponse(stream, false);
+      //console.log(stream)
+      let [, content] = this.transformResponse(stream, false);
+      if (this.sendCallback && content !== "") {
+        this.sendCallback(content); // 触发回调
+        content = ""; // 清空内容（或根据需要保持部分内容）
+      }
       return Promise.resolve(content);
     }
     return new Promise((resolve, reject) => {
@@ -48,7 +53,7 @@ export class AIServiceBase {
         try {
           // 将当前数据块添加到缓冲区
           buffer += chunk.toString();
-
+          //console.log(chunk.toString());
           // 按分隔符切割缓冲区内容，生成 JSON 片段
           const parts = buffer.split(separator);
 
@@ -91,7 +96,7 @@ export class AIServiceBase {
           if (buffer) {
             const json = JSON.parse(buffer);
             if (this.transformResponse) {
-              const [_, content] = this.transformResponse(json, true);
+              const [, content] = this.transformResponse(json, true);
               if (content) accumulatedContent += content;
             }
           }
@@ -99,7 +104,7 @@ export class AIServiceBase {
           console.error("Error parsing final JSON chunk:", err);
         } finally {
           //console.log('---end:',accumulatedContent)
-          if (this.sendCallback) {
+          if (this.sendCallback && accumulatedContent !== "") {
             this.sendCallback(accumulatedContent); // 触发回调
             accumulatedContent = ""; // 清空内容（或根据需要保持部分内容）
           }
@@ -121,6 +126,7 @@ export class AIServiceBase {
     separator = "\n"
   ): Promise<string> {
     try {
+      //console.log(`sendMsg to ${endpoint}\r\npayload:${JSON.stringify(payload,null,2)}`)
       const response = await this.apiClient.post(endpoint, payload, {
         responseType: isStream ? "stream" : "json",
       });

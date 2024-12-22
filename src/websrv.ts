@@ -30,7 +30,7 @@ class WebSrv {
     this.app.post("/api/setkey", this.handleSetKey.bind(this));
     this.app.post(
       "/api/talk",
-      express.raw({ type: "multipart/form-data", limit: "10mb" }),
+      //express.raw({ type: "multipart/form-data", limit: "10mb" }),
       this.upload.single("file"),
       this.handleTalk.bind(this)
     );
@@ -96,9 +96,16 @@ class WebSrv {
   }
 
   async handleTalk(req: Request, res: Response) {
+    const callback = (content: string) => {
+      return new Promise<void>((resolve) => {
+        this.log("silly", `AI:\r\n ${content}`);
+        res.write(JSON.stringify({ message: content }));
+        resolve();
+      });
+    };
     const { to } = req.query;
-    const { content } = req.body;
-    if (!to || !content) {
+    const { options, payload } = req.body;
+    if (!to || !payload) {
       return res
         .status(400)
         .send({ error: "query not provided or text(image) missing" });
@@ -106,91 +113,78 @@ class WebSrv {
     // 从 multer 提取数据
     const fileBuffer = req.file?.buffer; // 文件内容
 
-    const messages: {
-      role: "system" | "user" | "assistant";
-      content: string;
-      image?: Uint8Array[] | string[];
-    }[] = [
+    const messages = payload.messages ?? [
       {
         role: "system",
         content: "You are a helpful assistant.",
       },
       {
         role: "user",
-        content: content,
+        content: payload.content ?? "hello",
         image: [fileBuffer?.toString("base64")],
       },
     ];
-    this.log("debug", `User Request to ${to}:\r\n${content}`);
+    this.log("debug", `User Request to ${to}:\r\n${messages[1].content}`);
     try {
       // 获取 API 密钥
-      const keyMng = new KeyMng();
-      const keyname = to + "-api-key";
-      const retrievedKey = await keyMng.getKeyByName(keyname);
+      const retrievedKey = await new KeyMng().getKeyByName(to + "-api-key");
       if (!retrievedKey || !retrievedKey.key) {
-        this.log("warn", `Key(${keyname}) not found or invalid.`);
+        this.log("warn", `Key(${to}-api-key) not found or invalid.`);
       }
+
       let AIResponse = "";
-      const isStream = true;
       // 初始化 AI 客户端
       switch (to) {
         case "openai":
           AIResponse = await new AIService.OpenAIService(
-            retrievedKey.key
-          ).sendMessage("chat/completions", {
-            model: process.env.OPENAI_MODEL || "gpt-4o",
+            retrievedKey.key,
+            callback
+          ).sendMessage(process.env.OPENAI_ENDPOINT, {
+            model: process.env.OPENAI_MODEL,
             messages: messages,
             max_tokens: 50, // 限制生成内容的长度
             temperature: 0.7, // 生成内容的随机性
           });
-          this.log("silly", `openAI Response:\r\n${AIResponse}`);
-          // 返回响应
-          res.send({ message: AIResponse });
+          if (AIResponse !== "") {
+            this.log("silly", `AI:\r\n${AIResponse}`);
+            res.write(JSON.stringify({ message: AIResponse }));
+          }
+          res.end();
           break;
         case "huggingface":
-          await new AIService.HuggingFaceService(
+          AIResponse = await new AIService.HuggingFaceService(
             retrievedKey.key,
-            (content: string) => {
-              return new Promise<void>((resolve) => {
-                this.log(
-                  "silly",
-                  `huggingfaceAI Stream Response:\r\n ${content}`
-                );
-                res.write(JSON.stringify({ message: content }));
-                resolve();
-              });
-            }
+            callback
           ).sendMessage(
-            process.env.HF_MODEL || "gpt2",
-            {
-              inputs: content,
-              parameters: {
-                max_length: 100,
-                temperature: 0.7,
-              },
-              stream: isStream,
-            },
-            isStream,
-            "data:"
+            options?.model ?? process.env.HF_ENDPOINT,
+            payload,
+            options?.stream,
+            options?.separator
           );
+          if (AIResponse !== "") {
+            this.log("silly", `AI:\r\n${AIResponse}`);
+            res.write(JSON.stringify({ message: AIResponse }));
+          }
           res.end();
           break;
         case "ollama":
           AIResponse = await new AIService.OllamaService(
-            retrievedKey.key
+            retrievedKey.key,
+            callback
           ).sendMessage(
-            "chat",
+            process.env.OLLAMA_ENDPOINT,
             {
-              model: process.env.OLLAMA_MODEL || "llama3.2",
+              model: process.env.OLLAMA_MODEL,
               messages: messages,
-              stream: isStream,
+              stream: options?.stream,
             },
-            isStream,
-            "\n"
+            options?.stream
           );
-          this.log("silly", `ollamaAI Response:\r\n${AIResponse}`);
-          // 返回最终响应
-          res.send({ message: AIResponse });
+          if (AIResponse !== "") {
+            this.log("silly", `AI:\r\n${AIResponse}`);
+            res.write(JSON.stringify({ message: AIResponse }));
+          }
+          res.end();
           break;
         default:
           throw new Error("unknown AI");

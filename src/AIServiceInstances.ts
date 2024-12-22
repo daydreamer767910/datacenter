@@ -32,11 +32,15 @@ complete resp:
 export const HuggingFaceService = createAIService({
   baseUrl: "https://api-inference.huggingface.co/models/",
   timeout: 100000,
-  transformResponse: (json, stream): [boolean, string] => {
-    return stream
-      ? [json.token?.special ?? false, json.token?.text || ""]
-      : [true, json[0]?.generated_text || ""];
-  },
+  transformResponse: (json): [boolean, string] => [
+    true,
+    JSON.stringify(json, null, 2) || "",
+  ],
+  //{
+  //return stream
+  /*? [json.token?.special ?? false, json.token?.text || ""]
+      : [true, json[0]?.generated_text || ""];*/
+  //},
 });
 
 export const GoogleBardService = createAIService({

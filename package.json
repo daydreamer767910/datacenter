@@ -1,6 +1,6 @@
 {
   "name": "@daydreamer767910/datacenter",
-  "version": "3.2.1",
+  "version": "3.2.2",
   "author": "bill.liu",
   "license": "daydreamer",
   "description": "ktt data collection",
@@ -45,7 +45,7 @@
     "ts-node": "^10.9.1"
   },
   "scripts": {
-    "build": "tsc && cp src/*.json dist/",
+    "build": "tsc && cp src/*.json dist/ && chmod +x dist/ktt.js && chmod +x dist/cli.js",
     "rebuild": "npm-run-all clean lint prettier build",
     "clean": "rm -fr dist/*",
     "lint": "eslint --fix src --ext .ts --max-warnings=10",
