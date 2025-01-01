@@ -1,0 +1,24 @@
+{
+	"tables": [
+	  {
+		"name": "orders",
+		"columns": [
+		  { "name": "orderId", "type": "string" },
+		  { "name": "customerName", "type": "string" },
+		  { "name": "totalCost", "type": "number" },
+		  { "name": "discountedCost", "type": "number" },
+		  { "name": "orderDate", "type": "string" },
+		  { "name": "region", "type": "string" }
+		]
+	  },
+	  {
+		"name": "customers",
+		"columns": [
+		  { "name": "customerId", "type": "string" },
+		  { "name": "name", "type": "string" },
+		  { "name": "region", "type": "string" }
+		]
+	  }
+	]
+  }
+  

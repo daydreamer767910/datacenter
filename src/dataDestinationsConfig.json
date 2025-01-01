@@ -1,0 +1,21 @@
+{
+	"destinations": [
+	  {
+		"name": "excelOutput",
+		"type": "excel",
+		"path": "./output/orders.xlsx",
+		"sheetName": "Orders"
+	  }
+	],
+	"inmemory": [
+	  {
+		"destination": "excelOutput",
+		"mappings": [
+		  { "target": "orderId", "source": { "name": "orders", "field": "orderId" } },
+		  { "target": "customerName", "source": { "name": "orders", "field": "customerName" } },
+		  { "target": "totalCost", "source": { "name": "orders", "field": "totalCost" } }
+		]
+	  }
+	]
+  }
+  

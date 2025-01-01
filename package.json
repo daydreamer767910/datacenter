@@ -1,6 +1,6 @@
 {
   "name": "@daydreamer767910/datacenter",
-  "version": "3.2.2",
+  "version": "3.2.3",
   "author": "bill.liu",
   "license": "daydreamer",
   "description": "ktt data collection",
@@ -18,10 +18,12 @@
   ],
   "dependencies": {
     "axios": "^1.5.1",
+    "csv-parser": "^3.1.0",
     "dotenv": "^16.3.1",
     "exceljs": "^4.3.0",
     "express": "^4.18.2",
     "ffi-napi": "^4.0.3",
+    "filtrex": "^3.1.0",
     "multer": "^1.4.5-lts.1",
     "mysql2": "^2.3.3",
     "openai": "^4.76.3",
@@ -30,6 +32,7 @@
     "typeorm": "^0.3.17",
     "typescript": "^5.0.3",
     "winston": "^3.10.0",
+    "xlsx": "^0.18.5",
     "xlsx-populate": "^1.21.0"
   },
   "devDependencies": {

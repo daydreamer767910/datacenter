@@ -1,0 +1,57 @@
+{
+	"sources": [
+	  {
+		"name": "sales",
+		"type": "csv",
+		"path": "../dailybill/sales.csv",
+		"primaryKey": "orderId"
+	  },
+	  {
+		"name": "customers",
+		"type": "JSON",
+		"query": "SELECT * FROM customers",
+		"primaryKey": "customerId"
+	  }
+	],
+	"table": [
+	  {
+		"name": "orders",
+		"columns": [
+			{ "name": "orderId", "type": "string" },
+			{ "name": "customerName", "type": "string" },
+			{ "name": "totalCost", "type": "number" },
+			{ "name": "discountedCost", "type": "number" },
+			{ "name": "orderDate", "type": "string" },
+			{ "name": "region", "type": "string" }
+		]
+	  }
+	],
+	"mappings": [
+	  {
+		"target": "orderId",
+		"source": { "name": "sales", "field": "id" }
+	  },
+	  {
+		"target": "customerName",
+		"source": { "name": "customers", "field": "name" }
+	  },
+	  {
+		"target": "totalCost",
+		"source": { "name": "sales", "field": "price" },
+		"transform": "price * quantity"
+	  },
+	  {
+		"target": "discountedCost",
+		"transform": { "type": "function", "value": "calculateDiscount" }
+	  },
+	  {
+		"target": "orderDate",
+		"source": { "name": "sales", "field": "date" }
+	  },
+	  {
+		"target": "region",
+		"source": { "name": "customers", "field": "region" }
+	  }
+	]
+}
+  

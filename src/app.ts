@@ -4,6 +4,8 @@ import { Semaphore } from "./mutex";
 import * as path from "path";
 import { paidan, filterBills, client, mk_kttdir_daily } from "./transaction";
 import ffi from "ffi-napi";
+import fs from 'fs';
+import {objDatabase} from './memdatabase'
 
 interface CmdMsg extends IMemoryMessage {
   cmd: string;
@@ -147,6 +149,17 @@ class KttApp extends AppBase<CmdMsg> {
     } catch (err) {
       console.log("Not loaded: " + fileName + err);
     }
+    
+      // 示例用法
+    (async () => {
+      const configPath = "./testtbl.json"
+      const rawData = fs.readFileSync(configPath, 'utf-8');
+      const tableConfig = JSON.parse(rawData);
+      
+      objDatabase.initialize(tableConfig);
+      
+      })();
+
   }
 }
 export const App = new KttApp(50);

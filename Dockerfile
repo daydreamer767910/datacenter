@@ -3,7 +3,7 @@ FROM ubuntu:22.04 AS cpp_builder
 
 # 安装 C++ 编译工具和 CMake
 RUN apt-get update && apt-get install -y \
-    build-essential cmake && \
+    build-essential cmake libuv1-dev nlohmann-json3-dev pkg-config && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
