@@ -3,18 +3,19 @@ FROM ubuntu:22.04 AS cpp_builder
 
 # 安装 C++ 编译工具和 CMake
 RUN apt-get update && apt-get install -y \
-    build-essential cmake libuv1-dev nlohmann-json3-dev pkg-config && \
+    build-essential cmake libuv1-dev nlohmann-json3-dev pkg-config libboost-all-dev git && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
 WORKDIR /app/lib
 
 # 复制 C++ 源代码
-COPY lib/src /app/lib/src
+#COPY lib/memdb /app/lib
+RUN git clone https://github.com/daydreamer767910/memdb.git
 
 # 构建 C++ 库
 RUN mkdir -p build && cd build && \
-    cmake ../src && make && make install
+    cmake ../memdb && make && make install
 
 
 # Stage 2: Build Node.js Application
@@ -58,7 +59,7 @@ FROM node:18-slim AS runtime
 #RUN apk --no-cache add mysql-client
 #RUN apk add --no-cache tzdata
 RUN apt-get update && apt-get install -y \
-	default-mysql-client \
+	default-mysql-client libuv1-dev nlohmann-json3-dev libboost-all-dev \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 
@@ -68,6 +69,7 @@ WORKDIR /app
 # 复制应用和 C++ 库
 # 从 C++ 构建阶段复制编译后的库
 COPY --from=cpp_builder /app/lib/build/lib ./lib
+COPY --from=cpp_builder /app/lib/build/bin ./bin
 COPY --from=node_builder /app/bin ./bin
 COPY --from=node_builder /app/dist ./dist
 COPY --from=node_builder /app/node_modules ./node_modules
@@ -77,8 +79,12 @@ COPY .env ./
 # 安装全局依赖
 RUN npm install -g .
 
+ENV PATH="/app/bin:$PATH" \
+    LD_LIBRARY_PATH="/app/lib"
+
 # 暴露服务端口
 EXPOSE 7899
+EXPOSE 7900
 
 # 设置 CLI 入口
 ENTRYPOINT ["ktt"]
