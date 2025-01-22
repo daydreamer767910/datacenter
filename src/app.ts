@@ -22,31 +22,6 @@ enum CommandType {
   t = "test",
   l = "loop",
 }
-const fileName = path.resolve(__dirname, "../lib/libmdb.so");
-
-
-// 定义库接口
-const mdbLib = ffi.Library(fileName, {
-  mdb_init: ["void", []],
-  mdb_stop: ["void", []],
-  mdb_start: ["int", ["string", "int"]],
-  mdb_reconnect: ["int", ["string", "int"]],
-  mdb_recv: ["int", ["pointer", "int", "int"]],
-  mdb_send: ["int", ["string", "int", "int"]],
-});
-
-// 初始化
-mdbLib.mdb_init();
-
-// 启动连接
-const ip = "192.168.1.67";
-const port = 8900;
-const startResult = mdbLib.mdb_start(ip, port);
-if (startResult === 0) {
-  console.log("Connection started successfully!");
-} else {
-  console.error("Failed to start connection.");
-}
 
 class KttApp extends AppBase<CmdMsg> {
   private semaphore: Semaphore;
@@ -152,8 +127,30 @@ class KttApp extends AppBase<CmdMsg> {
     //Logger.log("info", "sem release");
     criticalSection(this, 2);
     criticalSection(this, 3);*/
-
+    const fileName = path.resolve(__dirname, "../lib/libmdb.so");
     try {
+      // 定义库接口
+      const mdbLib = ffi.Library(fileName, {
+        mdb_init: ["void", []],
+        mdb_stop: ["void", []],
+        mdb_start: ["int", ["string", "int"]],
+        mdb_reconnect: ["int", ["string", "int"]],
+        mdb_recv: ["int", ["pointer", "int", "int"]],
+        mdb_send: ["int", ["string", "int", "int"]],
+      });
+
+      // 初始化
+      mdbLib.mdb_init();
+
+      // 启动连接
+      const ip = "192.168.1.67";
+      const port = 8900;
+      const startResult = mdbLib.mdb_start(ip, port);
+      if (startResult === 0) {
+        console.log("Connection started successfully!");
+      } else {
+        console.error("Failed to start connection.");
+      }
       const jsonConfig = {
         action: "create",
         name: "test",
@@ -281,8 +278,8 @@ class KttApp extends AppBase<CmdMsg> {
         console.error("Failed to receive data.");
       }
       // 停止并释放资源
-      //mdbLib.mdb_stop();
-      //console.log("Stopped and cleaned up.");
+      mdbLib.mdb_stop();
+      console.log("Stopped and cleaned up.");
     } catch (err) {
       console.log("Not loaded: " + fileName + err);
     }
