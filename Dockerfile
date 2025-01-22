@@ -3,7 +3,7 @@ FROM ubuntu:22.04 AS cpp_builder
 
 # 安装 C++ 编译工具和 CMake
 RUN apt-get update && apt-get install -y \
-    build-essential cmake libuv1-dev nlohmann-json3-dev pkg-config libboost-all-dev git && \
+    build-essential cmake nlohmann-json3-dev pkg-config libboost-all-dev git && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -59,7 +59,7 @@ FROM node:18-slim AS runtime
 #RUN apk --no-cache add mysql-client
 #RUN apk add --no-cache tzdata
 RUN apt-get update && apt-get install -y \
-	default-mysql-client libuv1-dev nlohmann-json3-dev libboost-all-dev \
+	default-mysql-client \
     tzdata \
     && rm -rf /var/lib/apt/lists/*
 
@@ -68,8 +68,8 @@ WORKDIR /app
 
 # 复制应用和 C++ 库
 # 从 C++ 构建阶段复制编译后的库
-COPY --from=cpp_builder /app/lib/build/lib ./lib
-COPY --from=cpp_builder /app/lib/build/bin ./bin
+COPY --from=cpp_builder /app/lib/build/lib/libmdb.so ./lib/
+#COPY --from=cpp_builder /app/lib/build/bin ./bin
 COPY --from=node_builder /app/bin ./bin
 COPY --from=node_builder /app/dist ./dist
 COPY --from=node_builder /app/node_modules ./node_modules

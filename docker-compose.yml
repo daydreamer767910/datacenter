@@ -4,6 +4,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    container_name: ktt-container
     stdin_open: true
     tty: true
     ports:
