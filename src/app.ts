@@ -131,7 +131,7 @@ class KttApp extends AppBase<CmdMsg> {
     try {
       // 定义库接口
       const mdbLib = ffi.Library(fileName, {
-        mdb_init: ["void", []],
+        mdb_init: ["void", ["string","string"]],
         mdb_stop: ["void", []],
         mdb_start: ["int", ["string", "int"]],
         mdb_reconnect: ["int", ["string", "int"]],
@@ -140,7 +140,7 @@ class KttApp extends AppBase<CmdMsg> {
       });
 
       // 初始化
-      mdbLib.mdb_init();
+      mdbLib.mdb_init("memdb", "oumass");
 
       // 启动连接
       const ip = "192.168.1.67";
@@ -154,12 +154,13 @@ class KttApp extends AppBase<CmdMsg> {
       const jsonConfig = {
         action: "create",
         name: "test",
+        type: "table",
         columns: [
           { name: "id", type: "int", primaryKey: true },
           { name: "name", type: "string" },
           { name: "age", type: "int", defaultValue: 20 },
           { name: "addr", type: "string", defaultValue: "xxxx" },
-          { name: "created_at", type: "date" },
+          { name: "created_at", type: "time" },
         ],
       };
       const jsonStr = JSON.stringify(jsonConfig,null,1);

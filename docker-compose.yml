@@ -15,6 +15,7 @@ services:
       - .env
     environment:
       - TZ=America/Los_Angeles
+      - LD_PRELOAD=/app/lib/libjemalloc.so.2
     volumes:
       - E:/ktt/dailybill:/app/dailybill
       - E:/ktt/express:/app/express
