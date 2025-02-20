@@ -65,8 +65,11 @@ export class AIServiceBase {
               // 去掉分隔符可能残留的前缀空格或换行符
               part = part.trim();
 
-              if (!part) continue; //空
-              //console.log(part);
+              if (!part || part === "[DONE]") continue; //空
+              if (!part.startsWith("{") || !part.endsWith("}")) {
+                console.warn("Skipping non-JSON chunk:", part);
+                continue;
+              }
               const json = JSON.parse(part);
               if (this.transformResponse) {
                 const [done, content] = this.transformResponse(json, true);
@@ -76,7 +79,7 @@ export class AIServiceBase {
                 // 如果 accumulatedContent 达到 100，则回调上层钩子
                 if (
                   this.sendCallback &&
-                  (done || accumulatedContent.length >= 100)
+                  (done || accumulatedContent.length >= 1024*2)
                 ) {
                   this.sendCallback(accumulatedContent); // 触发回调
                   accumulatedContent = ""; // 清空内容（或根据需要保持部分内容）
@@ -94,10 +97,15 @@ export class AIServiceBase {
       stream.on("end", async () => {
         try {
           if (buffer) {
-            const json = JSON.parse(buffer);
-            if (this.transformResponse) {
-              const [, content] = this.transformResponse(json, true);
-              if (content) accumulatedContent += content;
+            buffer = buffer.trim(); // 先去掉前后空格
+            if (buffer.startsWith("{") && buffer.endsWith("}")) {
+              const json = JSON.parse(buffer);
+              if (this.transformResponse) {
+                const [, content] = this.transformResponse(json, true);
+                if (content) accumulatedContent += content;
+              }
+            } else {
+              console.warn("Final buffer is not a valid JSON object:", buffer);
             }
           }
         } catch (err) {

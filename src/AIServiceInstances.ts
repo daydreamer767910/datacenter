@@ -30,12 +30,40 @@ complete resp:
 ]
 */
 export const HuggingFaceService = createAIService({
-  baseUrl: "https://api-inference.huggingface.co/models/",
+  baseUrl: "http://host.docker.internal:8080",
   timeout: 100000,
-  transformResponse: (json): [boolean, string] => [
-    true,
-    JSON.stringify(json, null, 2) || "",
-  ],
+  transformResponse: (json, stream): [boolean, string] => {
+    try {
+      const data = typeof json === "string" ? JSON.parse(json) : json;
+  
+      // 获取时间戳
+      const timestamp = data?.created ?? null;
+      const localTime = timestamp ? new Date(timestamp * 1000).toLocaleString() : "N/A";
+  
+      // 获取响应速度（单位: 毫秒）
+      const responseTime = data?.timings?.predicted_ms ?? null;
+  
+      // 处理 AI 生成的文本内容
+      let content = "";
+  
+      if (!stream) {
+        // **非流式** 响应
+        content = data.choices[0].message.content;
+        // 去除 <think> 标签及内容
+        content = content.replace(/<think>[\s\S]*?<\/think>\n*/, "").trim();
+        return [true, JSON.stringify({ localTime, responseTime, content }, null, 2)];
+      } else {
+        // **流式** 响应
+        content = data.choices[0].delta.content;
+        return [false, content];
+      }
+
+    } catch (error) {
+      console.error("Error parsing response:", error);
+      return [false, "Failed to parse response"];
+    }
+  },
+  //],
   //{
   //return stream
   /*? [json.token?.special ?? false, json.token?.text || ""]

@@ -98,7 +98,7 @@ class WebSrv {
   async handleTalk(req: Request, res: Response) {
     const callback = (content: string) => {
       return new Promise<void>((resolve) => {
-        this.log("silly", `AI:\r\n ${content}`);
+        this.log("info", `\r\nAI:\r\n ${content}`);
         res.write(JSON.stringify({ message: content }));
         resolve();
       });
@@ -112,7 +112,7 @@ class WebSrv {
     }
     // 从 multer 提取数据
     const fileBuffer = req.file?.buffer; // 文件内容
-
+    const model = payload.model ;
     const messages = payload.messages ?? [
       {
         role: "system",
@@ -124,7 +124,7 @@ class WebSrv {
         image: [fileBuffer?.toString("base64")],
       },
     ];
-    this.log("debug", `User Request to ${to}:\r\n${messages[1].content}`);
+    this.log("debug", `\r\nUser to ${model}:\r\n${messages?.[1]?.content}`);
     try {
       // 获取 API 密钥
       const retrievedKey = await new KeyMng().getKeyByName(to + "-api-key");
@@ -146,7 +146,7 @@ class WebSrv {
             temperature: 0.7, // 生成内容的随机性
           });
           if (AIResponse !== "") {
-            this.log("silly", `AI:\r\n${AIResponse}`);
+            this.log("debug", `AI:\r\n${AIResponse}`);
             res.write(JSON.stringify({ message: AIResponse }));
           }
           res.end();
@@ -156,13 +156,13 @@ class WebSrv {
             retrievedKey.key,
             callback
           ).sendMessage(
-            options?.model ?? process.env.HF_ENDPOINT,
+            process.env.HF_ENDPOINT,
             payload,
-            options?.stream,
+            payload?.stream,
             options?.separator
           );
           if (AIResponse !== "") {
-            this.log("silly", `AI:\r\n${AIResponse}`);
+            this.log("info", `\r\n${model}:\r\n${AIResponse}`);
             res.write(JSON.stringify({ message: AIResponse }));
           }
           res.end();
