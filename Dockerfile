@@ -3,7 +3,7 @@ FROM ubuntu:22.04 AS cpp_builder
 
 # 安装 C++ 编译工具和 CMake
 RUN apt-get update && apt-get install -y \
-    build-essential cmake nlohmann-json3-dev pkg-config libboost-all-dev  libsodium-dev libjemalloc-dev git && \
+    build-essential cmake nlohmann-json3-dev pkg-config libboost-all-dev  libssl-dev libargon2-dev libjemalloc-dev git && \
     rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -61,6 +61,8 @@ FROM node:18-slim AS runtime
 RUN apt-get update && apt-get install -y \
 	default-mysql-client \
     tzdata \
+    libjemalloc2 \
+    libargon2-1 \
     && rm -rf /var/lib/apt/lists/*
 
 # 设置工作目录
@@ -69,8 +71,7 @@ WORKDIR /app
 # 复制应用和 C++ 库
 # 从 C++ 构建阶段复制编译后的库
 COPY --from=cpp_builder /app/lib/build/lib/libmdb.so ./lib/
-COPY --from=cpp_builder /usr/lib/x86_64-linux-gnu/libjemalloc.so* ./lib/
-COPY --from=cpp_builder /usr/lib/x86_64-linux-gnu/libsodium.so* ./lib/
+
 #COPY --from=cpp_builder /app/lib/build/bin ./bin
 COPY --from=node_builder /app/bin ./bin
 COPY --from=node_builder /app/dist ./dist

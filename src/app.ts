@@ -135,12 +135,12 @@ class KttApp extends AppBase<CmdMsg> {
         mdb_stop: ["void", []],
         mdb_start: ["int", ["string", "int"]],
         mdb_reconnect: ["int", ["string", "int"]],
-        mdb_recv: ["int", ["pointer", "int", "int"]],
-        mdb_send: ["int", ["string", "int", "int"]],
+        mdb_recv: ["int", ["pointer", "int", "pointer", "int"]],
+        mdb_send: ["int", ["string", "int", "int", "int"]],
       });
 
       // 初始化
-      mdbLib.mdb_init("memdb", "oumass");
+      mdbLib.mdb_init("memdb", "11111111");
 
       // 启动连接
       const ip = "192.168.1.67";
@@ -167,7 +167,7 @@ class KttApp extends AppBase<CmdMsg> {
       let msgId = 1;
       const timeout = 5000;
 
-      const sendResult = mdbLib.mdb_send(jsonStr, msgId, timeout);
+      const sendResult = mdbLib.mdb_send(jsonStr, jsonStr.length, msgId, timeout);
       if (sendResult > 0) {
         console.log("Message sent successfully!");
       } else {
@@ -183,10 +183,10 @@ class KttApp extends AppBase<CmdMsg> {
       const bufferPtr = buffer as unknown as ref.Pointer<unknown>;
 
       const recvTimeout = 5000;
-
+      const msgIdRef = ref.alloc("int");
       // 调用 mdb_recv
-      const recvResult = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, recvTimeout);
-
+      const recvResult = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, msgIdRef, recvTimeout);
+      //msgId = msgIdRef.deref();
       if (recvResult > 0) {
         const jsonResult = buffer.toString("utf8", 0, recvResult); // 提取接收的数据
         const receivedData = JSON.parse(jsonResult);
@@ -231,7 +231,7 @@ class KttApp extends AppBase<CmdMsg> {
       const jsonConfig1 = JSON.stringify(jsonData, null, 1);
       msgId = 2;
 
-      const sendResult1 = mdbLib.mdb_send(jsonConfig1, msgId, timeout);
+      const sendResult1 = mdbLib.mdb_send(jsonConfig1, jsonConfig1.length, msgId, timeout);
       if (sendResult1 > 0) {
         console.log("Message sent successfully!");
       } else {
@@ -239,7 +239,7 @@ class KttApp extends AppBase<CmdMsg> {
       }
 
       // 调用 mdb_recv
-      const recvResult1 = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, recvTimeout);
+      const recvResult1 = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, msgIdRef, recvTimeout);
 
       if (recvResult1 > 0) {
         const jsonResult = buffer.toString("utf8", 0, recvResult1); // 提取接收的数据
@@ -259,7 +259,7 @@ class KttApp extends AppBase<CmdMsg> {
       const data = JSON.stringify(jsonConfig2, null, 1);
       msgId = 3;
 
-      const sendResult2 = mdbLib.mdb_send(data, msgId, timeout);
+      const sendResult2 = mdbLib.mdb_send(data, data.length, msgId, timeout);
       if (sendResult2 > 0) {
         console.log("Message sent successfully!");
       } else {
@@ -267,7 +267,7 @@ class KttApp extends AppBase<CmdMsg> {
       }
 
       // 调用 mdb_recv
-      const recvResult2 = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, recvTimeout);
+      const recvResult2 = mdbLib.mdb_recv(bufferPtr, BUFFER_SIZE, msgIdRef, recvTimeout);
 
       if (recvResult2 > 0) {
         const jsonResult = buffer.toString("utf8", 0, recvResult2); // 提取接收的数据
